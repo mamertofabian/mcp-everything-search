@@ -16,6 +16,7 @@ Parameters:
 - `match_whole_word` (optional): Match whole words only (default: false)
 - `match_regex` (optional): Enable regex search (default: false)
 - `sort_by` (optional): Sort order for results (default: 1). Available options:
+  ```
   - 1 (NAME_ASC): Sort by filename (A to Z)
   - 2 (NAME_DESC): Sort by filename (Z to A)
   - 3 (PATH_ASC): Sort by path (A to Z)
@@ -28,6 +29,7 @@ Parameters:
   - 12 (CREATED_DESC): Sort by creation date (newest first)
   - 13 (MODIFIED_ASC): Sort by modification date (oldest first)
   - 14 (MODIFIED_DESC): Sort by modification date (newest first)
+```
 
 Examples:
 ```json
