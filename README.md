@@ -18,7 +18,7 @@ Parameters:
 - `sort_by` (optional): Sort order for results (default: 1). 
 <details>
 <summary>Available options:</summary>
-  ```
+```
   - 1 (NAME_ASC): Sort by filename (A to Z)
   - 2 (NAME_DESC): Sort by filename (Z to A)
   - 3 (PATH_ASC): Sort by path (A to Z)
