@@ -35,7 +35,8 @@ Examples:
 ```json
 {
   "query": "*.py",
-  "max_results": 50
+  "max_results": 50,
+  "sort_by": 6
 }
 ```
 
