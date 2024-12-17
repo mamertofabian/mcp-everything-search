@@ -53,7 +53,7 @@ Response includes:
 
 ### Search Syntax Guide
 <details>
-<summary>Search Syntax Guide</summary>
+<summary>Advanced Search Queries</summary>
 
 ### Basic Operators
 - `space`: AND operator
