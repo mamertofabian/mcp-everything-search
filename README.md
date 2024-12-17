@@ -15,9 +15,7 @@ Parameters:
 - `match_case` (optional): Enable case-sensitive search (default: false)
 - `match_whole_word` (optional): Match whole words only (default: false)
 - `match_regex` (optional): Enable regex search (default: false)
-- `sort_by` (optional): Sort order for results (default: 1). 
-<details>
-<summary>Available options:</summary>
+- `sort_by` (optional): Sort order for results (default: 1). Available options:
 ```
   - 1 (NAME_ASC): Sort by filename (A to Z)
   - 2 (NAME_DESC): Sort by filename (Z to A)
@@ -32,7 +30,6 @@ Parameters:
   - 13 (MODIFIED_ASC): Sort by modification date (oldest first)
   - 14 (MODIFIED_DESC): Sort by modification date (newest first)
 ```
-</details>
 
 Examples:
 ```json
