@@ -1,5 +1,6 @@
 """MCP server implementation for cross-platform file search."""
 
+import json
 import platform
 import sys
 from typing import List
@@ -114,32 +115,88 @@ Examples:
 - locate -r "/home/.*\.txt$"
 - locate -c "*.doc"
 """,
-            'windows': """Everything Search Syntax:
-
-Operators:
-- space: AND operator
-- | (pipe): OR operator
-- ! (exclamation): NOT operator
-- < > (angle brackets): Grouping
-- " " (quotes): Exact phrase
-
-Functions:
-- size:<size>[kb|mb|gb]
-- date:<date> (YYYY[-MM[-DD[THH[:MM[:SS]]]]])
-- attrib:<attribute>
-- type:<type>
-- ext:<ext1;ext2>
-
-Special Keywords:
-- file: Match files only
-- folder: Match folders only
-- duplicates: Find duplicate files
-- empty: Find empty folders
-
+            'windows': """Search for files and folders using Everything SDK.
+                
+Features:
+- Fast file and folder search across all indexed drives
+- Support for wildcards and boolean operators
+- Multiple sort options (name, path, size, dates)
+- Case-sensitive and whole word matching
+- Regular expression support
+- Path matching
+Search Syntax Guide:
+1. Basic Operators:
+   - space: AND operator
+   - |: OR operator
+   - !: NOT operator
+   - < >: Grouping
+   - " ": Search for an exact phrase
+2. Wildcards:
+   - *: Matches zero or more characters
+   - ?: Matches exactly one character
+   Note: Wildcards match the whole filename by default. Disable Match whole filename to match wildcards anywhere.
+3. Functions:
+   Size and Count:
+   - size:<size>[kb|mb|gb]: Search by file size
+   - count:<max>: Limit number of results
+   - childcount:<count>: Folders with specific number of children
+   - childfilecount:<count>: Folders with specific number of files
+   - childfoldercount:<count>: Folders with specific number of subfolders
+   - len:<length>: Match filename length
+   Dates:
+   - datemodified:<date>, dm:<date>: Modified date
+   - dateaccessed:<date>, da:<date>: Access date
+   - datecreated:<date>, dc:<date>: Creation date
+   - daterun:<date>, dr:<date>: Last run date
+   - recentchange:<date>, rc:<date>: Recently changed date
+   
+   Date formats: YYYY[-MM[-DD[Thh[:mm[:ss[.sss]]]]]] or today, yesterday, lastweek, etc.
+   
+   File Attributes and Types:
+   - attrib:<attributes>, attributes:<attributes>: Search by file attributes (A:Archive, H:Hidden, S:System, etc.)
+   - type:<type>: Search by file type
+   - ext:<list>: Search by semicolon-separated extensions
+   
+   Path and Name:
+   - path:<path>: Search in specific path
+   - parent:<path>, infolder:<path>, nosubfolders:<path>: Search in path excluding subfolders
+   - startwith:<text>: Files starting with text
+   - endwith:<text>: Files ending with text
+   - child:<filename>: Folders containing specific child
+   - depth:<count>, parents:<count>: Files at specific folder depth
+   - root: Files with no parent folder
+   - shell:<name>: Search in known shell folders
+   Duplicates and Lists:
+   - dupe, namepartdupe, attribdupe, dadupe, dcdupe, dmdupe, sizedupe: Find duplicates
+   - filelist:<list>: Search pipe-separated (|) file list
+   - filelistfilename:<filename>: Search files from list file
+   - frn:<frnlist>: Search by File Reference Numbers
+   - fsi:<index>: Search by file system index
+   - empty: Find empty folders
+4. Function Syntax:
+   - function:value: Equal to value
+   - function:<=value: Less than or equal
+   - function:<value: Less than
+   - function:=value: Equal to
+   - function:>value: Greater than
+   - function:>=value: Greater than or equal
+   - function:start..end: Range of values
+   - function:start-end: Range of values
+5. Modifiers:
+   - case:, nocase:: Enable/disable case sensitivity
+   - file:, folder:: Match only files or folders
+   - path:, nopath:: Match full path or filename only
+   - regex:, noregex:: Enable/disable regex
+   - wfn:, nowfn:: Match whole filename or anywhere
+   - wholeword:, ww:: Match whole words only
+   - wildcards:, nowildcards:: Enable/disable wildcards
 Examples:
-- "project report" ext:pdf
-- size:>1gb type:video
-- modified:today !temp
+1. Find Python files modified today:
+   ext:py datemodified:today
+2. Find large video files:
+   ext:mp4|mkv|avi size:>1gb
+3. Find files in specific folder:
+   path:C:\Projects *.js
 """
         }
 
@@ -166,39 +223,45 @@ Search Syntax Guide:
             raise ValueError(f"Unknown tool: {name}")
 
         try:
-            # Parse and handle both inputs
-            import json
-
-            try:
-                # Parse base input
-                if isinstance(arguments.get('base'), str):
+            # Parse and validate inputs
+            base_params = {}
+            windows_params = {}
+            
+            # Handle base parameters
+            if 'base' in arguments:
+                if isinstance(arguments['base'], str):
                     try:
                         base_params = json.loads(arguments['base'])
                     except json.JSONDecodeError:
-                        # If not valid JSON, treat as simple query string
+                        # If not valid JSON string, treat as simple query string
                         base_params = {'query': arguments['base']}
+                elif isinstance(arguments['base'], dict):
+                    # If already a dict, use directly
+                    base_params = arguments['base']
                 else:
-                    base_params = arguments.get('base', {})
+                    raise ValueError("'base' parameter must be a string or dictionary")
 
-                # Parse windows_params if present
-                if arguments.get('windows_params'):
+            # Handle Windows-specific parameters
+            if 'windows_params' in arguments:
+                if isinstance(arguments['windows_params'], str):
                     try:
                         windows_params = json.loads(arguments['windows_params'])
                     except json.JSONDecodeError:
-                        windows_params = {}
+                        raise ValueError("Invalid JSON in windows_params")
+                elif isinstance(arguments['windows_params'], dict):
+                    # If already a dict, use directly
+                    windows_params = arguments['windows_params']
                 else:
-                    windows_params = {}
+                    raise ValueError("'windows_params' must be a string or dictionary")
 
-                # Combine parameters
-                query_params = {
-                    **base_params,
-                    'windows_params': windows_params
-                }
+            # Combine parameters
+            query_params = {
+                **base_params,
+                'windows_params': windows_params
+            }
 
-                # Create unified query
-                query = UnifiedSearchQuery(**query_params)
-            except json.JSONDecodeError as e:
-                raise ValueError(f"Invalid JSON in parameters: {e}")
+            # Create unified query
+            query = UnifiedSearchQuery(**query_params)
 
             if current_platform == "windows":
                 # Use Everything SDK directly
