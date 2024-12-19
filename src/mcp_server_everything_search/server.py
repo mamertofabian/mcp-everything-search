@@ -1,7 +1,6 @@
 """MCP server implementation for cross-platform file search."""
 
 import platform
-import ctypes
 import sys
 from typing import List
 from mcp.server import Server
@@ -9,7 +8,8 @@ from mcp.server.stdio import stdio_server
 from mcp.types import TextContent, Tool, Resource, ResourceTemplate, Prompt
 from pydantic import BaseModel, Field
 
-from .search_interface import SearchProvider, SearchResult
+from .platform_search import UnifiedSearchQuery, WindowsSpecificParams, build_search_command
+from .search_interface import SearchProvider
 
 class SearchQuery(BaseModel):
     """Model for search query parameters."""
@@ -45,6 +45,7 @@ class SearchQuery(BaseModel):
 
 async def serve() -> None:
     """Run the server."""
+    current_platform = platform.system().lower()
     search_provider = SearchProvider.get_provider()
     
     server = Server("universal-search")
@@ -66,36 +67,96 @@ async def serve() -> None:
 
     @server.list_tools()
     async def list_tools() -> List[Tool]:
-        """Return the universal search tool with platform-specific documentation."""
-        search_docs = {
-            'windows': """Search using Everything SDK.
-Features:
-- Fast file and folder search across all indexed drives
-- Support for wildcards and boolean operators
-- Multiple sort options
-- Case-sensitive and whole word matching
-- Regular expression support""",
-            
-            'darwin': """Search using macOS Spotlight (mdfind).
-Features:
-- Real-time file indexing
-- Basic name and content search
-- Case-insensitive by default
-- Limited regex support""",
-            
-            'linux': """Search using locate database.
-Features:
-- Fast filename-based search
-- Case-insensitive option
-- Basic regex support
-- Note: Database updates periodically (usually daily)"""
+        """Return the search tool with platform-specific documentation and schema."""
+        platform_info = {
+            'windows': "Using Everything SDK with full search capabilities",
+            'darwin': "Using mdfind (Spotlight) with native macOS search capabilities",
+            'linux': "Using locate with Unix-style search capabilities"
         }
+
+        syntax_docs = {
+            'darwin': """macOS Spotlight (mdfind) Search Syntax:
+                
+Basic Usage:
+- Simple text search: Just type the words you're looking for
+- Phrase search: Use quotes ("exact phrase")
+- Filename search: -name "filename"
+- Directory scope: -onlyin /path/to/dir
+
+Special Parameters:
+- Live updates: -live
+- Literal search: -literal
+- Interpreted search: -interpret
+
+Metadata Attributes:
+- kMDItemDisplayName
+- kMDItemTextContent
+- kMDItemKind
+- kMDItemFSSize
+- And many more OS X metadata attributes""",
+
+            'linux': """Linux Locate Search Syntax:
+
+Basic Usage:
+- Simple pattern: locate filename
+- Case-insensitive: -i pattern
+- Regular expressions: -r pattern
+- Existing files only: -e pattern
+- Count matches: -c pattern
+
+Pattern Wildcards:
+- * matches any characters
+- ? matches single character
+- [] matches character classes
+
+Examples:
+- locate -i "*.pdf"
+- locate -r "/home/.*\.txt$"
+- locate -c "*.doc"
+""",
+            'windows': """Everything Search Syntax:
+
+Operators:
+- space: AND operator
+- | (pipe): OR operator
+- ! (exclamation): NOT operator
+- < > (angle brackets): Grouping
+- " " (quotes): Exact phrase
+
+Functions:
+- size:<size>[kb|mb|gb]
+- date:<date> (YYYY[-MM[-DD[THH[:MM[:SS]]]]])
+- attrib:<attribute>
+- type:<type>
+- ext:<ext1;ext2>
+
+Special Keywords:
+- file: Match files only
+- folder: Match folders only
+- duplicates: Find duplicate files
+- empty: Find empty folders
+
+Examples:
+- "project report" ext:pdf
+- size:>1gb type:video
+- modified:today !temp
+"""
+        }
+
+        description = f"""Universal file search tool for {platform.system()}
+
+Current Implementation:
+{platform_info.get(current_platform, "Unknown platform")}
+
+Search Syntax Guide:
+{syntax_docs.get(current_platform, "Platform-specific syntax guide not available")}
+"""
 
         return [
             Tool(
                 name="search",
-                description=f"Universal file search tool\n\n{search_docs.get(platform.system().lower(), 'Platform-specific search')}",
-                inputSchema=SearchQuery.model_json_schema(),
+                description=description,
+                inputSchema=UnifiedSearchQuery.get_schema_for_platform()
             )
         ]
 
@@ -105,16 +166,59 @@ Features:
             raise ValueError(f"Unknown tool: {name}")
 
         try:
-            query = SearchQuery(**arguments)
-            results = search_provider.search_files(
-                query=query.query,
-                max_results=query.max_results,
-                match_path=query.match_path,
-                match_case=query.match_case,
-                match_whole_word=query.match_whole_word,
-                match_regex=query.match_regex,
-                sort_by=query.sort_by
-            )
+            # Parse and handle both inputs
+            import json
+
+            try:
+                # Parse base input
+                if isinstance(arguments.get('base'), str):
+                    try:
+                        base_params = json.loads(arguments['base'])
+                    except json.JSONDecodeError:
+                        # If not valid JSON, treat as simple query string
+                        base_params = {'query': arguments['base']}
+                else:
+                    base_params = arguments.get('base', {})
+
+                # Parse windows_params if present
+                if arguments.get('windows_params'):
+                    try:
+                        windows_params = json.loads(arguments['windows_params'])
+                    except json.JSONDecodeError:
+                        windows_params = {}
+                else:
+                    windows_params = {}
+
+                # Combine parameters
+                query_params = {
+                    **base_params,
+                    'windows_params': windows_params
+                }
+
+                # Create unified query
+                query = UnifiedSearchQuery(**query_params)
+            except json.JSONDecodeError as e:
+                raise ValueError(f"Invalid JSON in parameters: {e}")
+
+            if current_platform == "windows":
+                # Use Everything SDK directly
+                platform_params = query.windows_params or WindowsSpecificParams()
+                results = search_provider.search_files(
+                    query=query.query,
+                    max_results=query.max_results,
+                    match_path=platform_params.match_path,
+                    match_case=platform_params.match_case,
+                    match_whole_word=platform_params.match_whole_word,
+                    match_regex=platform_params.match_regex,
+                    sort_by=platform_params.sort_by
+                )
+            else:
+                # Use command-line tools (mdfind/locate)
+                cmd = build_search_command(query)
+                results = search_provider.search_files(
+                    command=cmd,
+                    max_results=query.base.max_results
+                )
             
             return [TextContent(
                 type="text",
@@ -141,6 +245,8 @@ Features:
 
 def configure_windows_console():
     """Configure Windows console for UTF-8 output."""
+    import ctypes
+
     if sys.platform == "win32":
         # Enable virtual terminal processing
         kernel32 = ctypes.windll.kernel32
