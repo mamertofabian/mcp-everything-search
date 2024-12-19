@@ -1,6 +1,6 @@
 [project]
 name = "mcp-server-everything-search"
-version = "0.1.2"
+version = "0.2.0"
 description = "A Model Context Protocol server providing fast file searching using Everything SDK"
 readme = "README.md"
 requires-python = ">=3.10"
