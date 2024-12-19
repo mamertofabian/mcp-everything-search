@@ -32,3 +32,4 @@ htmlcov/
 .mypy_cache/
 
 .history
+.aider*
