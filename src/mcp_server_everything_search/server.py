@@ -214,10 +214,16 @@ Search Syntax Guide:
                 )
             else:
                 # Use command-line tools (mdfind/locate)
-                cmd = build_search_command(query)
+                platform_params = None
+                if current_platform == 'darwin':
+                    platform_params = query.mac_params or {}
+                elif current_platform == 'linux':
+                    platform_params = query.linux_params or {}
+
                 results = search_provider.search_files(
-                    command=cmd,
-                    max_results=query.base.max_results
+                    query=query.query,
+                    max_results=query.max_results,
+                    **platform_params.dict() if platform_params else {}
                 )
             
             return [TextContent(

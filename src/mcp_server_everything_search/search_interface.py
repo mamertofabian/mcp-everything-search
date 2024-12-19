@@ -3,9 +3,11 @@
 import abc
 import platform
 import subprocess
+import os
 from datetime import datetime
 from typing import Optional, List
 from dataclasses import dataclass
+from pathlib import Path
 
 @dataclass
 class SearchResult:
@@ -49,6 +51,27 @@ class SearchProvider(abc.ABC):
         else:
             raise NotImplementedError(f"No search provider available for {system}")
 
+    def _convert_path_to_result(self, path: str) -> SearchResult:
+        """Convert a path to a SearchResult with file information."""
+        try:
+            path_obj = Path(path)
+            stat = path_obj.stat()
+            return SearchResult(
+                path=str(path_obj),
+                filename=path_obj.name,
+                extension=path_obj.suffix[1:] if path_obj.suffix else None,
+                size=stat.st_size,
+                created=datetime.fromtimestamp(stat.st_ctime),
+                modified=datetime.fromtimestamp(stat.st_mtime),
+                accessed=datetime.fromtimestamp(stat.st_atime)
+            )
+        except (OSError, ValueError) as e:
+            # If we can't access the file, return basic info
+            return SearchResult(
+                path=str(path),
+                filename=os.path.basename(path)
+            )
+
 class MacSearchProvider(SearchProvider):
     """macOS search implementation using mdfind."""
     
@@ -65,40 +88,61 @@ class MacSearchProvider(SearchProvider):
         try:
             # Build mdfind command
             cmd = ['mdfind']
-            if match_name := not match_path:
-                cmd.extend(['-name', query])
-            else:
+            if match_path:
+                # When matching path, don't use -name
                 cmd.append(query)
+            else:
+                cmd.extend(['-name', query])
             
             # Execute search
             result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode != 0:
+                raise RuntimeError(f"mdfind failed: {result.stderr}")
+
+            # Process results
             paths = result.stdout.splitlines()[:max_results]
-            
-            # Convert to SearchResult objects
-            results = []
-            for path in paths:
-                import os
-                filename = os.path.basename(path)
-                _, ext = os.path.splitext(filename)
-                stat = os.stat(path)
-                
-                results.append(SearchResult(
-                    path=path,
-                    filename=filename,
-                    extension=ext[1:] if ext else None,
-                    size=stat.st_size,
-                    created=datetime.fromtimestamp(stat.st_ctime),
-                    modified=datetime.fromtimestamp(stat.st_mtime),
-                    accessed=datetime.fromtimestamp(stat.st_atime)
-                ))
-            
-            return results
+            return [self._convert_path_to_result(path) for path in paths]
             
         except subprocess.CalledProcessError as e:
             raise RuntimeError(f"Search failed: {e}")
 
 class LinuxSearchProvider(SearchProvider):
-    """Linux search implementation using locate."""
+    """Linux search implementation using locate/plocate."""
+
+    def __init__(self):
+        """Check if locate/plocate is installed and the database is ready."""
+        self.locate_cmd = None
+        self.locate_type = None
+
+        # Check for plocate first (newer version)
+        plocate_check = subprocess.run(['which', 'plocate'], capture_output=True)
+        if plocate_check.returncode == 0:
+            self.locate_cmd = 'plocate'
+            self.locate_type = 'plocate'
+        else:
+            # Check for mlocate
+            mlocate_check = subprocess.run(['which', 'locate'], capture_output=True)
+            if mlocate_check.returncode == 0:
+                self.locate_cmd = 'locate'
+                self.locate_type = 'mlocate'
+            else:
+                raise RuntimeError(
+                    "Neither 'locate' nor 'plocate' is installed. Please install one:\n"
+                    "Ubuntu/Debian: sudo apt-get install plocate\n"
+                    "              or\n"
+                    "              sudo apt-get install mlocate\n"
+                    "Fedora: sudo dnf install mlocate\n"
+                    "After installation, the database will be updated automatically, or run:\n"
+                    "For plocate: sudo updatedb\n"
+                    "For mlocate: sudo /etc/cron.daily/mlocate"
+                )
+
+    def _update_database(self):
+        """Update the locate database."""
+        if self.locate_type == 'plocate':
+            subprocess.run(['sudo', 'updatedb'], check=True)
+        else:  # mlocate
+            subprocess.run(['sudo', '/etc/cron.daily/mlocate'], check=True)
     
     def search_files(
         self,
@@ -112,42 +156,39 @@ class LinuxSearchProvider(SearchProvider):
     ) -> List[SearchResult]:
         try:
             # Build locate command
-            cmd = ['locate']
+            cmd = [self.locate_cmd]
             if not match_case:
                 cmd.append('-i')
             if match_regex:
-                cmd.append('--regex')
+                cmd.append('--regex' if self.locate_type == 'mlocate' else '-r')
             cmd.append(query)
             
             # Execute search
             result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode != 0:
+                error_msg = result.stderr.lower()
+                if "no such file or directory" in error_msg or "database" in error_msg:
+                    raise RuntimeError(
+                        f"The {self.locate_type} database needs to be created. "
+                        f"Please run: sudo updatedb"
+                    )
+                raise RuntimeError(f"{self.locate_cmd} failed: {result.stderr}")
+
+            # Process results
             paths = result.stdout.splitlines()[:max_results]
+            return [self._convert_path_to_result(path) for path in paths]
             
-            # Convert to SearchResult objects
-            results = []
-            for path in paths:
-                import os
-                filename = os.path.basename(path)
-                _, ext = os.path.splitext(filename)
-                try:
-                    stat = os.stat(path)
-                    results.append(SearchResult(
-                        path=path,
-                        filename=filename,
-                        extension=ext[1:] if ext else None,
-                        size=stat.st_size,
-                        created=datetime.fromtimestamp(stat.st_ctime),
-                        modified=datetime.fromtimestamp(stat.st_mtime),
-                        accessed=datetime.fromtimestamp(stat.st_atime)
-                    ))
-                except OSError:
-                    # Skip files we can't access
-                    continue
-            
-            return results
-            
+        except FileNotFoundError:
+            raise RuntimeError(
+                f"The {self.locate_cmd} command disappeared. Please reinstall:\n"
+                "Ubuntu/Debian: sudo apt-get install plocate\n"
+                "              or\n"
+                "              sudo apt-get install mlocate\n"
+                "Fedora: sudo dnf install mlocate"
+            )
         except subprocess.CalledProcessError as e:
             raise RuntimeError(f"Search failed: {e}")
+
 
 class WindowsSearchProvider(SearchProvider):
     """Windows search implementation using Everything SDK."""
@@ -183,3 +224,4 @@ class WindowsSearchProvider(SearchProvider):
             match_regex=match_regex,
             sort_by=sort_by
         )
+    

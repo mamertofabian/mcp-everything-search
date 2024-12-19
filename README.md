@@ -1,21 +1,27 @@
 # Everything Search MCP Server
 
-An MCP server that provides fast file searching capabilities using the [Everything](https://www.voidtools.com/) SDK.
+An MCP server that provides fast file searching capabilities across Windows, macOS, and Linux. On Windows, it uses the [Everything](https://www.voidtools.com/) SDK. On macOS, it uses the built-in `mdfind` command. On Linux, it uses the `locate`/`plocate` command.
 
 ## Tools
 
 ### search
 
-Search for files and folders using Everything SDK.
+Search for files and folders across your system. The search capabilities and syntax support vary by platform:
+
+- Windows: Full Everything SDK features (see syntax guide below)
+- macOS: Basic filename and content search using Spotlight database
+- Linux: Basic filename search using locate database
 
 Parameters:
-- `query` (required): Search query string. Supports wildcards (* and ?) and more. See the search syntax guide for more details.
+
+- `query` (required): Search query string. See platform-specific notes below.
 - `max_results` (optional): Maximum number of results to return (default: 100, max: 1000)
 - `match_path` (optional): Match against full path instead of filename only (default: false)
 - `match_case` (optional): Enable case-sensitive search (default: false)
 - `match_whole_word` (optional): Match whole words only (default: false)
 - `match_regex` (optional): Enable regex search (default: false)
 - `sort_by` (optional): Sort order for results (default: 1). Available options:
+
 ```
   - 1: Sort by filename (A to Z)
   - 2: Sort by filename (Z to A)
@@ -32,6 +38,7 @@ Parameters:
 ```
 
 Examples:
+
 ```json
 {
   "query": "*.py",
@@ -48,15 +55,22 @@ Examples:
 ```
 
 Response includes:
+
 - File/folder path
 - File size in bytes
 - Last modified date
 
 ### Search Syntax Guide
+
 <details>
-<summary>Advanced Search Queries</summary>
+<summary>Platform-Specific Search Features</summary>
+
+## Windows Search (Everything SDK)
+
+The following advanced search features are only available on Windows when using the Everything SDK:
 
 ### Basic Operators
+
 - `space`: AND operator
 - `|`: OR operator
 - `!`: NOT operator
@@ -64,6 +78,7 @@ Response includes:
 - `" "`: Search for an exact phrase
 
 ### Wildcards
+
 - `*`: Matches zero or more characters
 - `?`: Matches exactly one character
 
@@ -72,6 +87,7 @@ Note: Wildcards match the whole filename by default. Disable Match whole filenam
 ### Functions
 
 #### Size and Count
+
 - `size:<size>[kb|mb|gb]`: Search by file size
 - `count:<max>`: Limit number of results
 - `childcount:<count>`: Folders with specific number of children
@@ -80,6 +96,7 @@ Note: Wildcards match the whole filename by default. Disable Match whole filenam
 - `len:<length>`: Match filename length
 
 #### Dates
+
 - `datemodified:<date>, dm:<date>`: Modified date
 - `dateaccessed:<date>, da:<date>`: Access date
 - `datecreated:<date>, dc:<date>`: Creation date
@@ -89,11 +106,13 @@ Note: Wildcards match the whole filename by default. Disable Match whole filenam
 Date formats: YYYY[-MM[-DD[Thh[:mm[:ss[.sss]]]]]] or today, yesterday, lastweek, etc.
 
 #### File Attributes and Types
+
 - `attrib:<attributes>, attributes:<attributes>`: Search by file attributes (A:Archive, H:Hidden, S:System, etc.)
 - `type:<type>`: Search by file type
 - `ext:<list>`: Search by semicolon-separated extensions
 
 #### Path and Name
+
 - `path:<path>`: Search in specific path
 - `parent:<path>, infolder:<path>, nosubfolders:<path>`: Search in path excluding subfolders
 - `startwith:<text>`: Files starting with text
@@ -104,6 +123,7 @@ Date formats: YYYY[-MM[-DD[Thh[:mm[:ss[.sss]]]]]] or today, yesterday, lastweek,
 - `shell:<name>`: Search in known shell folders
 
 #### Duplicates and Lists
+
 - `dupe, namepartdupe, attribdupe, dadupe, dcdupe, dmdupe, sizedupe`: Find duplicates
 - `filelist:<list>`: Search pipe-separated (|) file list
 - `filelistfilename:<filename>`: Search files from list file
@@ -124,13 +144,13 @@ Date formats: YYYY[-MM[-DD[Thh[:mm[:ss[.sss]]]]]] or today, yesterday, lastweek,
 
 ### Modifiers
 
-- `case:, nocase:: Enable/disable case sensitivity
-- `file:, folder:: Match only files or folders
-- `path:, nopath:: Match full path or filename only
-- `regex:, noregex:: Enable/disable regex
-- `wfn:, nowfn:: Match whole filename or anywhere
-- `wholeword:, ww:: Match whole words only
-- `wildcards:, nowildcards:: Enable/disable wildcards
+- `case:, nocase:`: Enable/disable case sensitivity
+- `file:, folder:`: Match only files or folders
+- `path:, nopath:`: Match full path or filename only
+- `regex:, noregex:`: Enable/disable regex
+- `wfn:, nowfn:`: Match whole filename or anywhere
+- `wholeword:, ww:`: Match whole words only
+- `wildcards:, nowildcards:`: Enable/disable wildcards
 
 ### Examples
 
@@ -143,24 +163,201 @@ Date formats: YYYY[-MM[-DD[Thh[:mm[:ss[.sss]]]]]] or today, yesterday, lastweek,
 3. Find files in specific folder:
    `path:C:\Projects *.js`
 
+## macOS Search (mdfind)
+
+macOS uses Spotlight's metadata search capabilities through the `mdfind` command. The following features are supported:
+
+### Command Options
+
+- `-live`: Provides live updates to search results as files change
+- `-count`: Show only the number of matches
+- `-onlyin directory`: Limit search to specific directory
+- `-literal`: Treat query as literal text without interpretation
+- `-interpret`: Interpret query as if typed in Spotlight menu
+
+### Basic Search
+
+- Simple text search looks for matches in any metadata attribute
+- Wildcards (`*`) are supported in search strings
+- Multiple words are treated as AND conditions
+- Whitespace is significant in queries
+- Use parentheses () to group expressions
+
+### Search Operators
+
+- `|` (OR): Match either word, e.g., `"image|photo"`
+- `-` (NOT): Exclude matches, e.g., `-screenshot`
+- `=`, `==` (equal)
+- `!=` (not equal)
+- `<`, `>` (less/greater than)
+- `<=`, `>=` (less/greater than or equal)
+
+### Value Comparison Modifiers
+
+Use brackets with these modifiers:
+
+- `[c]`: Case-insensitive comparison
+- `[d]`: Diacritical marks insensitive
+- Can be combined, e.g., `[cd]` for both
+
+### Content Types (kind:)
+
+- `application`, `app`: Applications
+- `audio`, `music`: Audio/Music files
+- `bookmark`: Bookmarks
+- `contact`: Contacts
+- `email`, `mail message`: Email messages
+- `event`: Calendar events
+- `folder`: Folders
+- `font`: Fonts
+- `image`: Images
+- `movie`: Movies
+- `pdf`: PDF documents
+- `preferences`: System preferences
+- `presentation`: Presentations
+- `todo`: Calendar to-dos
+
+### Date Filters (date:)
+
+Time-based search using these keywords:
+
+- `today`, `yesterday`, `tomorrow`
+- `this week`, `next week`
+- `this month`, `next month`
+- `this year`, `next year`
+
+Or use time functions:
+
+- `$time.today()`
+- `$time.yesterday()`
+- `$time.this_week()`
+- `$time.this_month()`
+- `$time.this_year()`
+- `$time.tomorrow()`
+- `$time.next_week()`
+- `$time.next_month()`
+- `$time.next_year()`
+
+### Common Metadata Attributes
+
+Search specific metadata using these attributes:
+
+- `kMDItemAuthors`: Document authors
+- `kMDItemContentType`: File type
+- `kMDItemContentTypeTree`: File type hierarchy
+- `kMDItemCreator`: Creating application
+- `kMDItemDescription`: File description
+- `kMDItemDisplayName`: Display name
+- `kMDItemFSContentChangeDate`: File modification date
+- `kMDItemFSCreationDate`: File creation date
+- `kMDItemFSName`: Filename
+- `kMDItemKeywords`: Keywords/tags
+- `kMDItemLastUsedDate`: Last used date
+- `kMDItemNumberOfPages`: Page count
+- `kMDItemTitle`: Document title
+- `kMDItemUserTags`: User-assigned tags
+
+### Examples
+
+1. Find images modified yesterday:
+   `kind:image date:yesterday`
+
+2. Find documents by author (case-insensitive):
+   `kMDItemAuthors ==[c] "John Doe"`
+
+3. Find files in specific directory:
+   `mdfind -onlyin ~/Documents "query"`
+
+4. Find files by tag:
+   `kMDItemUserTags = "Important"`
+
+5. Find files created by application:
+   `kMDItemCreator = "Pixelmator*"`
+
+6. Find PDFs with specific text:
+   `kind:pdf "search term"`
+
+7. Find recent presentations:
+   `kind:presentation date:this week`
+
+8. Count matching files:
+   `mdfind -count "kind:image date:today"`
+
+9. Monitor for new matches:
+   `mdfind -live "kind:pdf"`
+
+10. Complex metadata search:
+    `kMDItemContentTypeTree = "public.image" && kMDItemUserTags = "vacation" && kMDItemFSContentChangeDate >= $time.this_month()`
+
+Note: Use `mdls filename` to see all available metadata attributes for a specific file.
+
+## Linux Search (locate/plocate)
+
+Linux uses the locate/plocate command for fast filename searching. The following features are supported:
+
+### Basic Search
+
+- Simple text search matches against filenames
+- Multiple words are treated as AND conditions
+- Wildcards (`*` and `?`) are supported
+- Case-insensitive by default
+
+### Search Options
+
+- `-i`: Case-insensitive search (default)
+- `-c`: Count matches instead of showing them
+- `-r` or `--regex`: Use regular expressions
+- `-b`: Match only the basename
+- `-w`: Match whole words only
+
+### Examples
+
+1. Find all Python files:
+   `*.py`
+
+2. Find files in home directory:
+   `/home/username/*`
+
+3. Case-sensitive search for specific file:
+   `--regex "^/etc/[A-Z].*\.conf$"`
+
+4. Count matching files:
+   Use with `-c` parameter
+
+Note: The locate database must be up to date for accurate results. Run `sudo updatedb` to update the database manually.
+
 </details>
 
 ## Prerequisites
 
-1. Windows operating system (required - this server only works on Windows)
-2. [Everything](https://www.voidtools.com/) search utility:
+### Windows
+
+1. [Everything](https://www.voidtools.com/) search utility:
    - Download and install from https://www.voidtools.com/
    - **Make sure the Everything service is running**
-3. Everything SDK:
+2. Everything SDK:
    - Download from https://www.voidtools.com/support/everything/sdk/
    - Extract the SDK files to a location on your system
+
+### Linux
+
+1. Install and initialize the `locate` or `plocate` command:
+   - Ubuntu/Debian: `sudo apt-get install plocate` or `sudo apt-get install mlocate`
+   - Fedora: `sudo dnf install mlocate`
+2. After installation, update the database:
+   - For plocate: `sudo updatedb`
+   - For mlocate: `sudo /etc/cron.daily/mlocate`
+
+### macOS
+
+No additional setup required. The server uses the built-in `mdfind` command.
 
 ## Installation
 
 ### Using uv (recommended)
 
 When using [`uv`](https://docs.astral.sh/uv/) no specific installation is needed. We will
-use [`uvx`](https://docs.astral.sh/uv/guides/tools/) to directly run *mcp-server-everything-search*.
+use [`uvx`](https://docs.astral.sh/uv/guides/tools/) to directly run _mcp-server-everything-search_.
 
 ### Using PIP
 
@@ -178,19 +375,26 @@ python -m mcp_server_everything_search
 
 ## Configuration
 
+### Windows
+
 The server requires the Everything SDK DLL to be available:
 
 Environment variable:
-   ```
-   EVERYTHING_SDK_PATH=path\to\Everything-SDK\dll\Everything64.dll
-   ```
+
+```
+EVERYTHING_SDK_PATH=path\to\Everything-SDK\dll\Everything64.dll
+```
+
+### Linux and macOS
+
+No additional configuration required.
 
 ### Usage with Claude Desktop
 
-Add this to your `claude_desktop_config.json`:
+Add one of these configurations to your `claude_desktop_config.json` based on your platform:
 
 <details>
-<summary>Using uvx</summary>
+<summary>Windows (using uvx)</summary>
 
 ```json
 "mcpServers": {
@@ -203,10 +407,11 @@ Add this to your `claude_desktop_config.json`:
   }
 }
 ```
+
 </details>
 
 <details>
-<summary>Using pip installation</summary>
+<summary>Windows (using pip installation)</summary>
 
 ```json
 "mcpServers": {
@@ -219,6 +424,32 @@ Add this to your `claude_desktop_config.json`:
   }
 }
 ```
+
+</details>
+
+<details>
+<summary>Linux and macOS</summary>
+
+```json
+"mcpServers": {
+  "everything-search": {
+    "command": "uvx",
+    "args": ["mcp-server-everything-search"]
+  }
+}
+```
+
+Or if using pip installation:
+
+```json
+"mcpServers": {
+  "everything-search": {
+    "command": "python",
+    "args": ["-m", "mcp_server_everything_search"]
+  }
+}
+```
+
 </details>
 
 ## Debugging
@@ -237,7 +468,19 @@ cd mcp-everything-search/src/mcp_server_everything_search
 npx @modelcontextprotocol/inspector uv run mcp-server-everything-search
 ```
 
-Using PowerShell, running `Get-Content -Path "$env:APPDATA\Claude\logs\mcp*.log" -Tail 20 -Wait` will show the logs from the server and may help you debug any issues.
+To view server logs:
+
+Linux/macOS:
+
+```bash
+tail -f ~/.config/Claude/logs/mcp*.log
+```
+
+Windows (PowerShell):
+
+```powershell
+Get-Content -Path "$env:APPDATA\Claude\logs\mcp*.log" -Tail 20 -Wait
+```
 
 ## Development
 

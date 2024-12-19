@@ -136,7 +136,6 @@ class UnifiedSearchQuery(BaseSearchQuery):
 def build_search_command(query: UnifiedSearchQuery) -> List[str]:
     """Build the appropriate search command based on platform and parameters."""
     system = platform.system().lower()
-    base_query = query.base
     platform_params = query.get_platform_params()
     
     if system == "darwin":
@@ -150,7 +149,7 @@ def build_search_command(query: UnifiedSearchQuery) -> List[str]:
                 cmd.append("-literal")
             if platform_params.interpret_query:
                 cmd.append("-interpret")
-        cmd.append(base_query.query)
+        cmd.append(query.query)  # Use query directly from UnifiedSearchQuery
         return cmd
         
     elif system == "linux":
@@ -164,7 +163,7 @@ def build_search_command(query: UnifiedSearchQuery) -> List[str]:
                 cmd.append("-e")
             if platform_params.count_only:
                 cmd.append("-c")
-        cmd.append(base_query.query)
+        cmd.append(query.query)  # Use query directly from UnifiedSearchQuery
         return cmd
         
     elif system == "windows":
