@@ -1,66 +1,21 @@
-"""MCP server implementation for Everything Search."""
+"""MCP server implementation for cross-platform file search."""
 
-import ctypes
-import os
+import json
+import platform
 import sys
-from enum import IntEnum
-from typing import Literal
-
+from typing import List
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import TextContent, Tool, Resource, ResourceTemplate, Prompt
 from pydantic import BaseModel, Field
 
-from .everything_sdk import (
-    EverythingSDK,
-    EVERYTHING_SORT_NAME_ASCENDING,
-    EVERYTHING_SORT_NAME_DESCENDING,
-    EVERYTHING_SORT_PATH_ASCENDING,
-    EVERYTHING_SORT_PATH_DESCENDING,
-    EVERYTHING_SORT_SIZE_ASCENDING,
-    EVERYTHING_SORT_SIZE_DESCENDING,
-    EVERYTHING_SORT_EXTENSION_ASCENDING,
-    EVERYTHING_SORT_EXTENSION_DESCENDING,
-    EVERYTHING_SORT_DATE_CREATED_ASCENDING,
-    EVERYTHING_SORT_DATE_CREATED_DESCENDING,
-    EVERYTHING_SORT_DATE_MODIFIED_ASCENDING,
-    EVERYTHING_SORT_DATE_MODIFIED_DESCENDING,
-)
-
-class SortOption(IntEnum):
-    """Sort options for search results.
-    
-    Available options:
-    - NAME_ASC (1): Sort by filename in ascending order
-    - NAME_DESC (2): Sort by filename in descending order
-    - PATH_ASC (3): Sort by full path in ascending order
-    - PATH_DESC (4): Sort by full path in descending order
-    - SIZE_ASC (5): Sort by file size in ascending order (smallest first)
-    - SIZE_DESC (6): Sort by file size in descending order (largest first)
-    - EXT_ASC (7): Sort by file extension in ascending order
-    - EXT_DESC (8): Sort by file extension in descending order
-    - CREATED_ASC (11): Sort by creation date in ascending order (oldest first)
-    - CREATED_DESC (12): Sort by creation date in descending order (newest first)
-    - MODIFIED_ASC (13): Sort by modification date in ascending order (oldest first)
-    - MODIFIED_DESC (14): Sort by modification date in descending order (newest first)
-    """
-    NAME_ASC = EVERYTHING_SORT_NAME_ASCENDING
-    NAME_DESC = EVERYTHING_SORT_NAME_DESCENDING
-    PATH_ASC = EVERYTHING_SORT_PATH_ASCENDING
-    PATH_DESC = EVERYTHING_SORT_PATH_DESCENDING
-    SIZE_ASC = EVERYTHING_SORT_SIZE_ASCENDING
-    SIZE_DESC = EVERYTHING_SORT_SIZE_DESCENDING
-    EXT_ASC = EVERYTHING_SORT_EXTENSION_ASCENDING
-    EXT_DESC = EVERYTHING_SORT_EXTENSION_DESCENDING
-    CREATED_ASC = EVERYTHING_SORT_DATE_CREATED_ASCENDING
-    CREATED_DESC = EVERYTHING_SORT_DATE_CREATED_DESCENDING
-    MODIFIED_ASC = EVERYTHING_SORT_DATE_MODIFIED_ASCENDING
-    MODIFIED_DESC = EVERYTHING_SORT_DATE_MODIFIED_DESCENDING
+from .platform_search import UnifiedSearchQuery, WindowsSpecificParams, build_search_command
+from .search_interface import SearchProvider
 
 class SearchQuery(BaseModel):
     """Model for search query parameters."""
     query: str = Field(
-        description="Search query string. Supports wildcards (* and ?) and more. See the search syntax guide for more details."
+        description="Search query string. See the search syntax guide for details."
     )
     max_results: int = Field(
         default=100,
@@ -84,41 +39,83 @@ class SearchQuery(BaseModel):
         default=False,
         description="Enable regex search"
     )
-    sort_by: SortOption = Field(
-        default=SortOption.NAME_ASC,
-        description="""Sort order for results. Available options:
-        - 1 (NAME_ASC): Sort by filename (A to Z)
-        - 2 (NAME_DESC): Sort by filename (Z to A)
-        - 3 (PATH_ASC): Sort by path (A to Z)
-        - 4 (PATH_DESC): Sort by path (Z to A)
-        - 5 (SIZE_ASC): Sort by size (smallest first)
-        - 6 (SIZE_DESC): Sort by size (largest first)
-        - 7 (EXT_ASC): Sort by extension (A to Z)
-        - 8 (EXT_DESC): Sort by extension (Z to A)
-        - 11 (CREATED_ASC): Sort by creation date (oldest first)
-        - 12 (CREATED_DESC): Sort by creation date (newest first)
-        - 13 (MODIFIED_ASC): Sort by modification date (oldest first)
-        - 14 (MODIFIED_DESC): Sort by modification date (newest first)"""
+    sort_by: int = Field(
+        default=1,
+        description="Sort order for results (Note: Not all sort options available on all platforms)"
     )
-
-    class Config:
-        """Pydantic model configuration."""
-        use_enum_values = True  # Use enum values in schema
 
 async def serve() -> None:
     """Run the server."""
-    # Load Everything SDK DLL
-    dll_path = os.getenv('EVERYTHING_SDK_PATH', 'D:\\dev\\tools\\Everything-SDK\\dll\\Everything64.dll')
-    everything_sdk = EverythingSDK(dll_path)
+    current_platform = platform.system().lower()
+    search_provider = SearchProvider.get_provider()
+    
+    server = Server("universal-search")
 
-    server = Server("everything-search")
+    @server.list_resources()
+    async def list_resources() -> list[Resource]:
+        """Return an empty list since this server doesn't provide any resources."""
+        return []
+
+    @server.list_resource_templates()
+    async def list_resource_templates() -> list[ResourceTemplate]:
+        """Return an empty list since this server doesn't provide any resource templates."""
+        return []
+
+    @server.list_prompts()
+    async def list_prompts() -> list[Prompt]:
+        """Return an empty list since this server doesn't provide any prompts."""
+        return []
 
     @server.list_tools()
-    async def list_tools() -> list[Tool]:
-        return [
-            Tool(
-                name="search",
-                description="""Search for files and folders using Everything SDK.
+    async def list_tools() -> List[Tool]:
+        """Return the search tool with platform-specific documentation and schema."""
+        platform_info = {
+            'windows': "Using Everything SDK with full search capabilities",
+            'darwin': "Using mdfind (Spotlight) with native macOS search capabilities",
+            'linux': "Using locate with Unix-style search capabilities"
+        }
+
+        syntax_docs = {
+            'darwin': """macOS Spotlight (mdfind) Search Syntax:
+                
+Basic Usage:
+- Simple text search: Just type the words you're looking for
+- Phrase search: Use quotes ("exact phrase")
+- Filename search: -name "filename"
+- Directory scope: -onlyin /path/to/dir
+
+Special Parameters:
+- Live updates: -live
+- Literal search: -literal
+- Interpreted search: -interpret
+
+Metadata Attributes:
+- kMDItemDisplayName
+- kMDItemTextContent
+- kMDItemKind
+- kMDItemFSSize
+- And many more OS X metadata attributes""",
+
+            'linux': """Linux Locate Search Syntax:
+
+Basic Usage:
+- Simple pattern: locate filename
+- Case-insensitive: -i pattern
+- Regular expressions: -r pattern
+- Existing files only: -e pattern
+- Count matches: -c pattern
+
+Pattern Wildcards:
+- * matches any characters
+- ? matches single character
+- [] matches character classes
+
+Examples:
+- locate -i "*.pdf"
+- locate -r "/home/.*\.txt$"
+- locate -c "*.doc"
+""",
+            'windows': """Search for files and folders using Everything SDK.
                 
 Features:
 - Fast file and folder search across all indexed drives
@@ -127,21 +124,17 @@ Features:
 - Case-sensitive and whole word matching
 - Regular expression support
 - Path matching
-
 Search Syntax Guide:
-
 1. Basic Operators:
    - space: AND operator
    - |: OR operator
    - !: NOT operator
    - < >: Grouping
    - " ": Search for an exact phrase
-
 2. Wildcards:
    - *: Matches zero or more characters
    - ?: Matches exactly one character
    Note: Wildcards match the whole filename by default. Disable Match whole filename to match wildcards anywhere.
-
 3. Functions:
    Size and Count:
    - size:<size>[kb|mb|gb]: Search by file size
@@ -150,7 +143,6 @@ Search Syntax Guide:
    - childfilecount:<count>: Folders with specific number of files
    - childfoldercount:<count>: Folders with specific number of subfolders
    - len:<length>: Match filename length
-
    Dates:
    - datemodified:<date>, dm:<date>: Modified date
    - dateaccessed:<date>, da:<date>: Access date
@@ -174,7 +166,6 @@ Search Syntax Guide:
    - depth:<count>, parents:<count>: Files at specific folder depth
    - root: Files with no parent folder
    - shell:<name>: Search in known shell folders
-
    Duplicates and Lists:
    - dupe, namepartdupe, attribdupe, dadupe, dcdupe, dmdupe, sizedupe: Find duplicates
    - filelist:<list>: Search pipe-separated (|) file list
@@ -182,7 +173,6 @@ Search Syntax Guide:
    - frn:<frnlist>: Search by File Reference Numbers
    - fsi:<index>: Search by file system index
    - empty: Find empty folders
-
 4. Function Syntax:
    - function:value: Equal to value
    - function:<=value: Less than or equal
@@ -192,7 +182,6 @@ Search Syntax Guide:
    - function:>=value: Greater than or equal
    - function:start..end: Range of values
    - function:start-end: Range of values
-
 5. Modifiers:
    - case:, nocase:: Enable/disable case sensitivity
    - file:, folder:: Match only files or folders
@@ -201,61 +190,104 @@ Search Syntax Guide:
    - wfn:, nowfn:: Match whole filename or anywhere
    - wholeword:, ww:: Match whole words only
    - wildcards:, nowildcards:: Enable/disable wildcards
-
 Examples:
 1. Find Python files modified today:
    ext:py datemodified:today
-
 2. Find large video files:
    ext:mp4|mkv|avi size:>1gb
-
 3. Find files in specific folder:
    path:C:\Projects *.js
-""",
-                inputSchema=SearchQuery.model_json_schema(),
-            ),
+"""
+        }
+
+        description = f"""Universal file search tool for {platform.system()}
+
+Current Implementation:
+{platform_info.get(current_platform, "Unknown platform")}
+
+Search Syntax Guide:
+{syntax_docs.get(current_platform, "Platform-specific syntax guide not available")}
+"""
+
+        return [
+            Tool(
+                name="search",
+                description=description,
+                inputSchema=UnifiedSearchQuery.get_schema_for_platform()
+            )
         ]
 
-    @server.list_resources()
-    async def list_resources() -> list[Resource]:
-        """Return an empty list since this server doesn't provide any resources."""
-        return []
-
-    @server.list_resource_templates()
-    async def list_resource_templates() -> list[ResourceTemplate]:
-        """Return an empty list since this server doesn't provide any resource templates."""
-        return []
-
-    @server.list_prompts()
-    async def list_prompts() -> list[Prompt]:
-        """Return an empty list since this server doesn't provide any prompts."""
-        return []
-
     @server.call_tool()
-    async def call_tool(name: str, arguments: dict) -> list[TextContent]:
+    async def call_tool(name: str, arguments: dict) -> List[TextContent]:
         if name != "search":
             raise ValueError(f"Unknown tool: {name}")
 
         try:
-            query = SearchQuery(**arguments)
-            # Replace double backslashes with single backslashes
-            query.query = query.query.replace("\\\\", "\\")
-            # If the query.query contains forward slashes, replace them with backslashes
-            query.query = query.query.replace("/", "\\")
-
-            # Add debug logging
-            print(f"Debug: Executing search with query: {query.query}", file=sys.stderr)
-            print(f"Debug: Sort by: {query.sort_by}", file=sys.stderr)
+            # Parse and validate inputs
+            base_params = {}
+            windows_params = {}
             
-            results = everything_sdk.search_files(
-                query=query.query,
-                max_results=query.max_results,
-                match_path=query.match_path,
-                match_case=query.match_case,
-                match_whole_word=query.match_whole_word,
-                match_regex=query.match_regex,
-                sort_by=query.sort_by
-            )
+            # Handle base parameters
+            if 'base' in arguments:
+                if isinstance(arguments['base'], str):
+                    try:
+                        base_params = json.loads(arguments['base'])
+                    except json.JSONDecodeError:
+                        # If not valid JSON string, treat as simple query string
+                        base_params = {'query': arguments['base']}
+                elif isinstance(arguments['base'], dict):
+                    # If already a dict, use directly
+                    base_params = arguments['base']
+                else:
+                    raise ValueError("'base' parameter must be a string or dictionary")
+
+            # Handle Windows-specific parameters
+            if 'windows_params' in arguments:
+                if isinstance(arguments['windows_params'], str):
+                    try:
+                        windows_params = json.loads(arguments['windows_params'])
+                    except json.JSONDecodeError:
+                        raise ValueError("Invalid JSON in windows_params")
+                elif isinstance(arguments['windows_params'], dict):
+                    # If already a dict, use directly
+                    windows_params = arguments['windows_params']
+                else:
+                    raise ValueError("'windows_params' must be a string or dictionary")
+
+            # Combine parameters
+            query_params = {
+                **base_params,
+                'windows_params': windows_params
+            }
+
+            # Create unified query
+            query = UnifiedSearchQuery(**query_params)
+
+            if current_platform == "windows":
+                # Use Everything SDK directly
+                platform_params = query.windows_params or WindowsSpecificParams()
+                results = search_provider.search_files(
+                    query=query.query,
+                    max_results=query.max_results,
+                    match_path=platform_params.match_path,
+                    match_case=platform_params.match_case,
+                    match_whole_word=platform_params.match_whole_word,
+                    match_regex=platform_params.match_regex,
+                    sort_by=platform_params.sort_by
+                )
+            else:
+                # Use command-line tools (mdfind/locate)
+                platform_params = None
+                if current_platform == 'darwin':
+                    platform_params = query.mac_params or {}
+                elif current_platform == 'linux':
+                    platform_params = query.linux_params or {}
+
+                results = search_provider.search_files(
+                    query=query.query,
+                    max_results=query.max_results,
+                    **platform_params.dict() if platform_params else {}
+                )
             
             return [TextContent(
                 type="text",
@@ -267,15 +299,10 @@ Examples:
                     f"Created: {r.created if r.created else 'N/A'}\n"
                     f"Modified: {r.modified if r.modified else 'N/A'}\n"
                     f"Accessed: {r.accessed if r.accessed else 'N/A'}\n"
-                    f"Run Count: {r.run_count if r.run_count else 'N/A'}\n"
-                    f"Attributes: {r.attributes if r.attributes else 'N/A'}\n"
                     for r in results
                 ])
             )]
         except Exception as e:
-            # Add more detailed error logging
-            import traceback
-            print(f"Debug: Error details:\n{traceback.format_exc()}", file=sys.stderr)
             return [TextContent(
                 type="text",
                 text=f"Search failed: {str(e)}"
@@ -287,6 +314,8 @@ Examples:
 
 def configure_windows_console():
     """Configure Windows console for UTF-8 output."""
+    import ctypes
+
     if sys.platform == "win32":
         # Enable virtual terminal processing
         kernel32 = ctypes.windll.kernel32
@@ -303,11 +332,22 @@ def configure_windows_console():
         sys.stdout.reconfigure(encoding='utf-8')
         sys.stderr.reconfigure(encoding='utf-8')
 
-def main():
+def main() -> None:
     """Main entry point."""
     import asyncio
-    
-    # Configure console before running the server
+    import logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+
     configure_windows_console()
     
-    asyncio.run(serve())
+    try:
+        asyncio.run(serve())
+    except KeyboardInterrupt:
+        logging.info("Server stopped by user")
+        sys.exit(0)
+    except Exception as e:
+        logging.error(f"Server error: {e}", exc_info=True)
+        sys.exit(1)

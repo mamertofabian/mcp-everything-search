@@ -30,3 +30,6 @@ env/
 htmlcov/
 .tox/
 .mypy_cache/
+
+.history
+.aider*
