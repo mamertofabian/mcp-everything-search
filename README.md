@@ -1,5 +1,7 @@
 # Everything Search MCP Server
 
+[![smithery badge](https://smithery.ai/badge/mcp-server-everything-search)](https://smithery.ai/server/mcp-server-everything-search)
+
 An MCP server that provides fast file searching capabilities across Windows, macOS, and Linux. On Windows, it uses the [Everything](https://www.voidtools.com/) SDK. On macOS, it uses the built-in `mdfind` command. On Linux, it uses the `locate`/`plocate` command.
 
 ## Tools
@@ -89,6 +91,14 @@ For detailed information about the search syntax supported on each platform (Win
 No additional setup required. The server uses the built-in `mdfind` command.
 
 ## Installation
+
+### Installing via Smithery
+
+To install Everything Search for Claude Desktop automatically via [Smithery](https://smithery.ai/server/mcp-server-everything-search):
+
+```bash
+npx -y @smithery/cli install mcp-server-everything-search --client claude
+```
 
 ### Using uv (recommended)
 
