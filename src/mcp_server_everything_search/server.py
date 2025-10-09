@@ -8,9 +8,12 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import TextContent, Tool, Resource, ResourceTemplate, Prompt
 from pydantic import BaseModel, Field
+import subprocess
+import argparse
 
 from .platform_search import UnifiedSearchQuery, WindowsSpecificParams, build_search_command
 from .search_interface import SearchProvider
+from .debug_viewer import start_debug_web_viewer
 
 class SearchQuery(BaseModel):
     """Model for search query parameters."""
@@ -46,10 +49,17 @@ class SearchQuery(BaseModel):
 
 async def serve() -> None:
     """Run the server."""
+    import logging
+    logger = logging.getLogger(__name__)
+    
     current_platform = platform.system().lower()
+    logger.info(f"Initializing server for platform: {current_platform}")
+    
     search_provider = SearchProvider.get_provider()
+    logger.info(f"Search provider initialized: {type(search_provider).__name__}")
     
     server = Server("universal-search")
+    logger.info("MCP server instance created")
 
     @server.list_resources()
     async def list_resources() -> list[Resource]:
@@ -219,6 +229,9 @@ Search Syntax Guide:
 
     @server.call_tool()
     async def call_tool(name: str, arguments: dict) -> List[TextContent]:
+        logger.debug(f"Tool called: {name}")
+        logger.debug(f"Arguments: {arguments}")
+        
         if name != "search":
             raise ValueError(f"Unknown tool: {name}")
 
@@ -281,10 +294,12 @@ Search Syntax Guide:
 
             # Create unified query
             query = UnifiedSearchQuery(**query_params)
+            logger.info(f"Search query: '{query.query}', max_results: {query.max_results}")
 
             if current_platform == "windows":
                 # Use Everything SDK directly
                 platform_params = query.windows_params or WindowsSpecificParams()
+                logger.debug(f"Using Windows Everything SDK with params: {platform_params}")
                 results = search_provider.search_files(
                     query=query.query,
                     max_results=query.max_results,
@@ -302,11 +317,14 @@ Search Syntax Guide:
                 elif current_platform == 'linux':
                     platform_params = query.linux_params or {}
 
+                logger.debug(f"Using command-line search with platform: {current_platform}")
                 results = search_provider.search_files(
                     query=query.query,
                     max_results=query.max_results,
                     **platform_params.dict() if platform_params else {}
                 )
+            
+            logger.info(f"Search returned {len(results)} results")
             
             return [TextContent(
                 type="text",
@@ -322,13 +340,16 @@ Search Syntax Guide:
                 ])
             )]
         except Exception as e:
+            logger.error(f"Search failed: {str(e)}", exc_info=True)
             return [TextContent(
                 type="text",
                 text=f"Search failed: {str(e)}"
             )]
 
     options = server.create_initialization_options()
+    logger.info("Starting MCP server stdio communication")
     async with stdio_server() as (read_stream, write_stream):
+        logger.info("Server is ready and listening for requests")
         await server.run(read_stream, write_stream, options, raise_exceptions=True)
 
 def configure_windows_console():
@@ -351,22 +372,78 @@ def configure_windows_console():
         sys.stdout.reconfigure(encoding='utf-8')
         sys.stderr.reconfigure(encoding='utf-8')
 
+
+
 def main() -> None:
     """Main entry point."""
     import asyncio
     import logging
-    logging.basicConfig(
-        level=logging.WARNING,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    )
+    from logging.handlers import RotatingFileHandler
+    import os,subprocess,argparse
+    
+# Parse command line arguments
+    parser = argparse.ArgumentParser(description='MCP Everything Search Server')
+    parser.add_argument('--debug', action='store_true', help='Start web-based log viewer and open browser automatically')
+    parser.add_argument('--debug-port', type=int, default=8765, help='Port for debug web viewer (default: 8765)')
+    parser.add_argument('--no-browser', action='store_true', help='Don\'t automatically open browser (only with --debug)')
+    args = parser.parse_args()
 
+
+        
+    # Configure the Windows console first (sets UTF-8 encoding)
     configure_windows_console()
     
+    # Setup file-based logging since stdout/stderr are used for MCP protocol
+    # Use rotating file handler to prevent log file from growing too large
+    
+    # Determine log file path (in user's .mcp/logs directory)
+    log_dir = os.path.join(os.path.expanduser("~"), ".mcp", "logs")
+    os.makedirs(log_dir, exist_ok=True)
+    log_file = os.path.join(log_dir, "mcp_everything_server.log")
+    
+    # Create rotating file handler (10MB max, keep 5 backup files)
+    file_handler = RotatingFileHandler(
+        log_file,
+        maxBytes=10 * 1024 * 1024,  # 10MB
+        backupCount=5,
+        encoding='utf-8'
+    )
+    file_handler.setLevel(logging.DEBUG)
+    
+    # Create formatter
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+    file_handler.setFormatter(formatter)
+    
+    # Configure root logger
+    logging.basicConfig(
+        level=logging.DEBUG,
+        handlers=[file_handler],
+        force=True,
+    )
+    
+    # Log startup information
+    logger = logging.getLogger(__name__)
+    logger.info("="*60)
+    server_py_path=os.path.abspath(__file__)
+    logger.info(f"Starting MCP Everything Search Server :Server file path:  {server_py_path}")
+    logger.info(f"Log file location: {log_file}")
+    logger.info(f"Python version: {sys.version}")
+    logger.info(f"Platform: {platform.system()} {platform.release()}")
+    logger.info(f"Working directory: {os.getcwd()}")
+    logger.info("="*60)
+# Start debug web viewer if --debug flag is passed
+    if args.debug:
+        start_debug_web_viewer(log_file, logger, args.debug_port, open_browser=not args.no_browser,
+        header_message="🔍  MCP Everything Search Server - Debug Logs")
     try:
         asyncio.run(serve())
     except KeyboardInterrupt:
-        logging.info("Server stopped by user")
+        logger.info("Server stopped by user")
         sys.exit(0)
     except Exception as e:
-        logging.error(f"Server error: {e}", exc_info=True)
+        logger.error(f"Server error: {e}", exc_info=True)
         sys.exit(1)
+
