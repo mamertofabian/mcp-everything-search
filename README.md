@@ -49,6 +49,18 @@ Examples:
 }
 ```
 
+You can also send an MCP-style envelope where the parameters are wrapped in a "base" key:
+
+```json
+{
+  "base": {
+    "query": "*.py",
+    "max_results": 50,
+    "sort_by": 6
+  }
+}
+```
+
 ```json
 {
   "query": "ext:py datemodified:today",
@@ -200,6 +212,37 @@ Or if using pip installation:
 
 ## Debugging
 
+### Server Logs
+
+The MCP server logs all activity to a file since stdout/stderr are used for MCP protocol communication.
+A browser window showing log messages from this mcp server is automatically opened if --debug flag is used 
+The browser window is used as the stdio debug prints will interfere with mcp over stdio
+
+**Log file location:**
+- Windows: `C:\Users\<YourUsername>\.mcp\logs\mcp_everything_server.log`
+- macOS/Linux: `~/.mcp/logs/mcp_everything_server.log`
+
+**Viewing logs in real-time:**
+
+Windows (PowerShell):
+```powershell
+Get-Content $env:USERPROFILE\.mcp\logs\mcp_everything_server.log -Wait -Tail 50
+```
+
+macOS/Linux:
+```bash
+tail -f ~/.mcp/logs/mcp_everything_server.log
+```
+
+The server uses rotating log files (10MB max, 5 backups) with detailed logging including:
+- Server startup and initialization
+- All search queries and results
+- Errors with full stack traces
+
+For more details, see the [Logging Documentation](../LOGGING.md).
+
+### MCP Inspector
+
 You can use the MCP inspector to debug the server. For uvx installations:
 
 ```
@@ -214,7 +257,9 @@ cd mcp-everything-search/src/mcp_server_everything_search
 npx @modelcontextprotocol/inspector uv run mcp-server-everything-search
 ```
 
-To view server logs:
+### Claude Desktop Logs
+
+To view Claude desktop app logs:
 
 Linux/macOS:
 

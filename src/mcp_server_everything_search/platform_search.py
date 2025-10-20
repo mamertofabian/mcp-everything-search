@@ -119,7 +119,48 @@ class UnifiedSearchQuery(BaseSearchQuery):
             schema["properties"]["linux_params"] = LinuxSpecificParams.model_json_schema()
         elif system == "windows":
             schema["properties"]["windows_params"] = WindowsSpecificParams.model_json_schema()
-            
+        # Pydantic v2 model_json_schema uses "$defs" for shared definitions.
+        # Some downstream consumers (jsonschema_pydantic) expect definitions under
+        # the "definitions" key and may resolve $ref values like "#/definitions/...".
+        # Normalize the schema to provide a "definitions" mapping and update any
+        # $ref occurrences to point to "#/definitions/..." to avoid KeyError
+        # when converting JSON Schema to pydantic models.
+        def _fix_refs(obj: Any):
+            if isinstance(obj, dict):
+                # Rename $defs -> definitions at this level if present
+                if "$defs" in obj and "definitions" not in obj:
+                    obj["definitions"] = obj.pop("$defs")
+                for k, v in list(obj.items()):
+                    if isinstance(v, str) and v.startswith("#/$defs/"):
+                        obj[k] = v.replace("#/$defs/", "#/definitions/")
+                    else:
+                        _fix_refs(v)
+            elif isinstance(obj, list):
+                for item in obj:
+                    _fix_refs(item)
+
+        _fix_refs(schema)
+
+        # Hoist any nested definitions into the top-level schema['definitions'] so
+        # tools that expect a flat definitions mapping (like jsonschema_pydantic)
+        # can resolve references by name.
+        top_defs = schema.setdefault("definitions", {})
+
+        def _hoist_definitions(obj: Any):
+            if isinstance(obj, dict):
+                if "definitions" in obj and obj is not schema:
+                    nested = obj.pop("definitions")
+                    for name, val in nested.items():
+                        if name not in top_defs:
+                            top_defs[name] = val
+                for v in obj.values():
+                    _hoist_definitions(v)
+            elif isinstance(obj, list):
+                for item in obj:
+                    _hoist_definitions(item)
+
+        _hoist_definitions(schema)
+
         return schema
 
     def get_platform_params(self) -> Optional[BaseModel]:

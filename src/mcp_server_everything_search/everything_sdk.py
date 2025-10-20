@@ -183,98 +183,129 @@ class EverythingSDK:
         return datetime.datetime.fromtimestamp(microsecs)
 
     def search_files(
-        self, 
-        query: str, 
-        max_results: int = 100,
-        match_path: bool = False,
-        match_case: bool = False,
-        match_whole_word: bool = False,
-        match_regex: bool = False,
-        sort_by: int = EVERYTHING_SORT_NAME_ASCENDING,
-        request_flags: int | None = None
-    ) -> List[SearchResult]:
-        """Perform file search using Everything SDK."""
-        print(f"Debug: Setting up search with query: {query}", file=sys.stderr)
-        
-        # Set up search parameters
-        self.dll.Everything_SetSearchW(query)
-        self.dll.Everything_SetMatchPath(match_path)
-        self.dll.Everything_SetMatchCase(match_case)
-        self.dll.Everything_SetMatchWholeWord(match_whole_word)
-        self.dll.Everything_SetRegex(match_regex)
-        self.dll.Everything_SetMax(max_results)
-        self.dll.Everything_SetSort(sort_by)
+            self, 
+            query: str, 
+            max_results: int = 100,
+            match_path: bool = False,
+            match_case: bool = False,
+            match_whole_word: bool = False,
+            match_regex: bool = False,
+            sort_by: int = EVERYTHING_SORT_NAME_ASCENDING,
+            request_flags: int | None = None
+        ) -> List[SearchResult]:
+            """Perform file search using Everything SDK."""
+            print(f"Debug: Setting up search with query: {query}", file=sys.stderr)
+            
+            # Set up search parameters
+            self.dll.Everything_SetSearchW(query)
+            self.dll.Everything_SetMatchPath(match_path)
+            self.dll.Everything_SetMatchCase(match_case)
+            self.dll.Everything_SetMatchWholeWord(match_whole_word)
+            self.dll.Everything_SetRegex(match_regex)
+            self.dll.Everything_SetMax(max_results)
+            self.dll.Everything_SetSort(sort_by)
 
-        # Set request flags
-        if request_flags is None:
-            request_flags = (
-                EVERYTHING_REQUEST_FILE_NAME |
-                EVERYTHING_REQUEST_PATH |
-                EVERYTHING_REQUEST_EXTENSION |
-                EVERYTHING_REQUEST_SIZE |
-                EVERYTHING_REQUEST_DATE_CREATED |
-                EVERYTHING_REQUEST_DATE_MODIFIED |
-                EVERYTHING_REQUEST_DATE_ACCESSED |
-                EVERYTHING_REQUEST_ATTRIBUTES |
-                EVERYTHING_REQUEST_RUN_COUNT |
-                EVERYTHING_REQUEST_HIGHLIGHTED_FILE_NAME |
-                EVERYTHING_REQUEST_HIGHLIGHTED_PATH
-            )
-        self.dll.Everything_SetRequestFlags(request_flags)
+            # Set request flags
+            if request_flags is None:
+                request_flags = (
+                    EVERYTHING_REQUEST_FILE_NAME |
+                    EVERYTHING_REQUEST_PATH |
+                    EVERYTHING_REQUEST_EXTENSION |
+                    EVERYTHING_REQUEST_SIZE |
+                    EVERYTHING_REQUEST_DATE_CREATED |
+                    EVERYTHING_REQUEST_DATE_MODIFIED |
+                    EVERYTHING_REQUEST_DATE_ACCESSED |
+                    EVERYTHING_REQUEST_ATTRIBUTES |
+                    EVERYTHING_REQUEST_RUN_COUNT |
+                    EVERYTHING_REQUEST_HIGHLIGHTED_FILE_NAME |
+                    EVERYTHING_REQUEST_HIGHLIGHTED_PATH
+                )
+            self.dll.Everything_SetRequestFlags(request_flags)
 
-        # Execute search
-        print("Debug: Executing search query", file=sys.stderr)
-        if not self.dll.Everything_QueryW(True):
-            self._check_error()
-            raise RuntimeError("Search query failed")
-        
-        # Get results
-        print("Debug: Getting search results", file=sys.stderr)
-        num_results = min(self.dll.Everything_GetNumResults(), max_results)
-        results = []
+            # Execute search
+            print("Debug: Executing search query", file=sys.stderr)
+            if not self.dll.Everything_QueryW(True):
+                self._check_error()
+                raise RuntimeError("Search query failed")
+            
+            # Get results
+            print("Debug: Getting search results", file=sys.stderr)
+            num_results = min(self.dll.Everything_GetNumResults(), max_results)
+            print (f"Debug: Number of results: {num_results}", file=sys.stderr)
+            results = []
 
-        filename_buffer = ctypes.create_unicode_buffer(260)
-        date_created = ctypes.c_ulonglong()
-        date_modified = ctypes.c_ulonglong()
-        date_accessed = ctypes.c_ulonglong()
-        file_size = ctypes.c_ulonglong()
+            filename_buffer = ctypes.create_unicode_buffer(260)
+            date_created = ctypes.c_ulonglong()
+            date_modified = ctypes.c_ulonglong()
+            date_accessed = ctypes.c_ulonglong()
+            file_size = ctypes.c_ulonglong()
 
-        for i in range(num_results):
-            try:
-                self.dll.Everything_GetResultFullPathNameW(i, filename_buffer, 260)
-                
-                # Get timestamps
-                self.dll.Everything_GetResultDateCreated(i, date_created)
-                self.dll.Everything_GetResultDateModified(i, date_modified)
-                self.dll.Everything_GetResultDateAccessed(i, date_accessed)
-                self.dll.Everything_GetResultSize(i, file_size)
+            for i in range(num_results):
+                try:
+                    try:
+                        self.dll.Everything_GetResultFullPathNameW(i, filename_buffer, 260)
+                    except Exception as e:
+                        print(f"Debug: Error getting full path name for result {i}: {e}", file=sys.stderr)
+                        continue
+                    
+                    # Get timestamps
+                    self.dll.Everything_GetResultDateCreated(i, date_created)
+                    self.dll.Everything_GetResultDateModified(i, date_modified)
+                    self.dll.Everything_GetResultDateAccessed(i, date_accessed)
+                    self.dll.Everything_GetResultSize(i, file_size)
+                    print (f"Debug: File size for result {i}: {file_size.value}", file=sys.stderr)
+                    # Get other attributes
+                    filename = self.dll.Everything_GetResultFileNameW(i)
+                    extension = self.dll.Everything_GetResultExtensionW(i)
+                    attributes = self.dll.Everything_GetResultAttributes(i)
+                    run_count = self.dll.Everything_GetResultRunCount(i)
+                    highlighted_filename = self.dll.Everything_GetResultHighlightedFileNameW(i)
+                    highlighted_path = self.dll.Everything_GetResultHighlightedPathW(i)
+                    print (f"Debug: Highlighted filename for result {i}: {highlighted_filename}", file=sys.stderr)
 
-                # Get other attributes
-                filename = self.dll.Everything_GetResultFileNameW(i)
-                extension = self.dll.Everything_GetResultExtensionW(i)
-                attributes = self.dll.Everything_GetResultAttributes(i)
-                run_count = self.dll.Everything_GetResultRunCount(i)
-                highlighted_filename = self.dll.Everything_GetResultHighlightedFileNameW(i)
-                highlighted_path = self.dll.Everything_GetResultHighlightedPathW(i)
 
-                results.append(SearchResult(
-                    path=filename_buffer.value,
-                    filename=filename,
-                    extension=extension,
-                    size=file_size.value,
-                    created=self._get_time(date_created.value).isoformat() if date_created.value else None,
-                    modified=self._get_time(date_modified.value).isoformat() if date_modified.value else None,
-                    accessed=self._get_time(date_accessed.value).isoformat() if date_accessed.value else None,
-                    attributes=attributes,
-                    run_count=run_count,
-                    highlighted_filename=highlighted_filename,
-                    highlighted_path=highlighted_path
-                ))
-            except Exception as e:
-                print(f"Debug: Error processing result {i}: {e}", file=sys.stderr)
-                continue
+                    path=filename_buffer.value
+                    print (f"Debug: Path for result {i}: {path}", file=sys.stderr)
+                    try:
+                        created=self._get_time(date_created.value).isoformat() if date_created.value else None
+                    except Exception as e:
+                        print(f"Debug: Error converting created time for result {i}: {e}", file=sys.stderr)
+                        created = None
+                    print (f"Debug: Created time for result {i}: {created}", file=sys.stderr)
+                    try:
+                        modified=self._get_time(date_modified.value).isoformat() if date_modified.value else None
+                    except Exception as e:
+                        print(f"Debug: Error converting modified time for result {i}: {e}", file=sys.stderr)
+                        modified = None
+                    print (f"Debug: Modified time for result {i}: {modified}", file=sys.stderr)
+                    try:
+                        accessed=self._get_time(date_accessed.value).isoformat() if date_accessed.value else None
+                    except Exception as e:
+                        print(f"Debug: Error converting accessed time for result {i}: {e}", file=sys.stderr)
+                        accessed = None
+                    print (f"Debug: Created time for result {i}: {created}", file=sys.stderr)   
+                    try:
+                        results.append(SearchResult(
+                        path=path,
+                        filename=filename,
+                        extension=extension,
+                        size=file_size.value,
+                        created=created,
+                        modified=modified,
+                        accessed=accessed,
+                        attributes=attributes,
+                        run_count=run_count,
+                        highlighted_filename=highlighted_filename,
+                        highlighted_path=highlighted_path
+                    ))
+                    except Exception as e:
+                        print(f"Debug: Error creating SearchResult for result {i}: {e}", file=sys.stderr)
+                        continue
+                except Exception as e:
+                    print(f"Debug: Error processing result {i}: {e}", file=sys.stderr)
+                    continue
 
-        print("Debug: Resetting Everything SDK", file=sys.stderr)
-        self.dll.Everything_Reset()
+            print("Debug: Resetting Everything SDK", file=sys.stderr)
+            self.dll.Everything_Reset()
 
-        return results
+            return results
