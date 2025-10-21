@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/mamertofabian-mcp-everything-search-badge.png)](https://mseep.ai/app/mamertofabian-mcp-everything-search)
+
 # Everything Search MCP Server
 
 [![smithery badge](https://smithery.ai/badge/mcp-server-everything-search)](https://smithery.ai/server/mcp-server-everything-search)
