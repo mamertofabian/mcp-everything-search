@@ -118,8 +118,16 @@ class UnifiedSearchQuery(BaseSearchQuery):
         elif system == "linux":
             schema["properties"]["linux_params"] = LinuxSpecificParams.model_json_schema()
         elif system == "windows":
+            if "$defs" not in schema:
+                schema["$defs"] = {}
+            if "WindowsSortOption" not in schema["$defs"]:
+                schema["$defs"]["WindowsSortOption"] = {
+                    "type": "integer",
+                    "enum":  [member.value for name, member in WindowsSortOption.__members__.items()],
+                    "description": "Sort options for Windows Everything search."
+                }
             schema["properties"]["windows_params"] = WindowsSpecificParams.model_json_schema()
-            
+
         return schema
 
     def get_platform_params(self) -> Optional[BaseModel]:
