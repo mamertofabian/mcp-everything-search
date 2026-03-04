@@ -1,8 +1,7 @@
 """Platform-specific search implementations with dedicated parameter models."""
 
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Literal, get_args
 from pydantic import BaseModel, Field
-from enum import Enum
 import platform
 
 class BaseSearchQuery(BaseModel):
@@ -55,20 +54,36 @@ class LinuxSpecificParams(BaseModel):
         description="Only display count of matches (-c parameter)"
     )
 
-class WindowsSortOption(int, Enum):
-    """Sort options for Windows Everything search."""
-    NAME_ASC = 1
-    NAME_DESC = 2
-    PATH_ASC = 3
-    PATH_DESC = 4
-    SIZE_ASC = 5
-    SIZE_DESC = 6
-    EXT_ASC = 7
-    EXT_DESC = 8
-    CREATED_ASC = 11
-    CREATED_DESC = 12
-    MODIFIED_ASC = 13
-    MODIFIED_DESC = 14
+WINDOWS_SORT_OPTIONS = {
+    1: "Name Ascending",
+    2: "Name Descending",
+    3: "Path Ascending",
+    4: "Path Descending",
+    5: "Size Ascending",
+    6: "Size Descending",
+    7: "Extension Ascending",
+    8: "Extension Descending",
+    11: "Created Date Ascending",
+    12: "Created Date Descending",
+    13: "Modified Date Ascending",
+    14: "Modified Date Descending",
+}
+
+# Define Literal type explicitly for MCP Inspector form compatibility
+WindowsSortOption = Literal[1, 2, 3, 4, 5, 6, 7, 8, 11, 12, 13, 14]
+
+# Runtime validation: ensure Literal values match dictionary keys
+_literal_values = set(get_args(WindowsSortOption))
+_dict_keys = set(WINDOWS_SORT_OPTIONS.keys())
+
+if _literal_values != _dict_keys:
+    raise RuntimeError(
+        f"INTERNAL ERROR: WindowsSortOption Literal values ({sorted(_literal_values)}) "
+        f"do not match WINDOWS_SORT_OPTIONS keys ({sorted(_dict_keys)}). "
+        "Please update WindowsSortOption to match the dictionary keys."
+    )
+
+_sort_descriptions = "; ".join([f"{k}={v}" for k, v in WINDOWS_SORT_OPTIONS.items()])
 
 class WindowsSpecificParams(BaseModel):
     """Windows-specific search parameters for Everything SDK."""
@@ -89,8 +104,8 @@ class WindowsSpecificParams(BaseModel):
         description="Enable regex search"
     )
     sort_by: WindowsSortOption = Field(
-        default=WindowsSortOption.NAME_ASC,
-        description="Sort order for results"
+        default=1,
+        description=f"Sort order for results. {_sort_descriptions}"
     )
 
 class UnifiedSearchQuery(BaseSearchQuery):
