@@ -313,24 +313,38 @@ Search Syntax Guide:
         await server.run(read_stream, write_stream, options, raise_exceptions=True)
 
 def configure_windows_console():
-    """Configure Windows console for UTF-8 output."""
+    """Configure Windows console for UTF-8 input and output."""
     import ctypes
 
     if sys.platform == "win32":
-        # Enable virtual terminal processing
-        kernel32 = ctypes.windll.kernel32
-        STD_OUTPUT_HANDLE = -11
-        ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004
+        try:
+            # Enable virtual terminal processing
+            kernel32 = ctypes.windll.kernel32
+            STD_OUTPUT_HANDLE = -11
+            ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004
+            
+            handle = kernel32.GetStdHandle(STD_OUTPUT_HANDLE)
+            mode = ctypes.c_ulong()
+            kernel32.GetConsoleMode(handle, ctypes.byref(mode))
+            mode.value |= ENABLE_VIRTUAL_TERMINAL_PROCESSING
+            kernel32.SetConsoleMode(handle, mode)
+        except (OSError, AttributeError, TypeError) as e:
+            sys.stderr.write(f"Warning: Failed to enable virtual terminal processing: {e}\n")
         
-        handle = kernel32.GetStdHandle(STD_OUTPUT_HANDLE)
-        mode = ctypes.c_ulong()
-        kernel32.GetConsoleMode(handle, ctypes.byref(mode))
-        mode.value |= ENABLE_VIRTUAL_TERMINAL_PROCESSING
-        kernel32.SetConsoleMode(handle, mode)
-        
-        # Set UTF-8 encoding for console output
-        sys.stdout.reconfigure(encoding='utf-8')
-        sys.stderr.reconfigure(encoding='utf-8')
+        # Attempt to set UTF-8 encoding for all standard streams
+        for name, stream in [("stdin", sys.stdin), ("stdout", sys.stdout), ("stderr", sys.stderr)]:
+            # Skip if already UTF-8
+            current_enc = getattr(stream, 'encoding', None)
+            if current_enc == 'utf-8':
+                continue
+            if hasattr(stream, 'reconfigure'):
+                try:
+                    stream.reconfigure(encoding='utf-8')
+                except Exception as e:
+                    # Log to stderr (which might still be ASCII, but safe)
+                    sys.stderr.write(f"Warning: Failed to set UTF-8 for {name}: {e}\n")
+            else:
+                sys.stderr.write(f"Warning: {name} does not support reconfigure, encoding may not be UTF-8\n")
 
 def main() -> None:
     """Main entry point."""
