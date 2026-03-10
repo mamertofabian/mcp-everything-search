@@ -9,7 +9,12 @@ from mcp.server.stdio import stdio_server
 from mcp.types import TextContent, Tool, Resource, ResourceTemplate, Prompt
 from pydantic import BaseModel, Field
 
-from .platform_search import UnifiedSearchQuery, WindowsSpecificParams, build_search_command
+from .platform_search import (
+    UnifiedSearchQuery,
+    WindowsSpecificParams,
+    MacSpecificParams,
+    LinuxSpecificParams
+)
 from .search_interface import SearchProvider
 
 class SearchQuery(BaseModel):
@@ -226,6 +231,8 @@ Search Syntax Guide:
             # Parse and validate inputs
             base_params = {}
             windows_params = {}
+            mac_params = {}
+            linux_params = {}
             
             # Handle base parameters
             if 'base' in arguments:
@@ -241,25 +248,62 @@ Search Syntax Guide:
                 else:
                     raise ValueError("'base' parameter must be a string or dictionary")
 
-            # Handle Windows-specific parameters
-            if 'windows_params' in arguments:
-                if isinstance(arguments['windows_params'], str):
-                    try:
-                        windows_params = json.loads(arguments['windows_params'])
-                    except json.JSONDecodeError:
-                        raise ValueError("Invalid JSON in windows_params")
-                elif isinstance(arguments['windows_params'], dict):
-                    # If already a dict, use directly
-                    windows_params = arguments['windows_params']
-                else:
-                    raise ValueError("'windows_params' must be a string or dictionary")
+            # Handle platform-specific parameters based on current platform
+            if current_platform == 'windows':
+                # Handle Windows-specific parameters
+                if 'windows_params' in arguments:
+                    if isinstance(arguments['windows_params'], str):
+                        try:
+                            windows_params = json.loads(arguments['windows_params'])
+                        except json.JSONDecodeError:
+                            raise ValueError("Invalid JSON in windows_params")
+                    elif isinstance(arguments['windows_params'], dict):
+                        windows_params = arguments['windows_params']
+                    else:
+                        raise ValueError("'windows_params' must be a string or dictionary")
+                
+                query_params = {
+                    **base_params,
+                    'windows_params': windows_params
+                }
 
-            # Combine parameters
-            query_params = {
-                **base_params,
-                'windows_params': windows_params
-            }
+            elif current_platform == 'darwin':
+                # Handle macOS-specific parameters
+                if 'mac_params' in arguments:
+                    if isinstance(arguments['mac_params'], str):
+                        try:
+                            mac_params = json.loads(arguments['mac_params'])
+                        except json.JSONDecodeError:
+                            raise ValueError("Invalid JSON in mac_params")
+                    elif isinstance(arguments['mac_params'], dict):
+                        mac_params = arguments['mac_params']
+                    else:
+                        raise ValueError("'mac_params' must be a string or dictionary")
+                
+                query_params = {
+                    **base_params,
+                    'mac_params': mac_params
+                }
 
+            elif current_platform == 'linux':
+                # Handle Linux-specific parameters
+                if 'linux_params' in arguments:
+                    if isinstance(arguments['linux_params'], str):
+                        try:
+                            linux_params = json.loads(arguments['linux_params'])
+                        except json.JSONDecodeError:
+                            raise ValueError("Invalid JSON in linux_params")
+                    elif isinstance(arguments['linux_params'], dict):
+                        linux_params = arguments['linux_params']
+                    else:
+                        raise ValueError("'linux_params' must be a string or dictionary")
+                
+                query_params = {
+                    **base_params,
+                    'linux_params': linux_params
+                }
+
+            # Combine parameters - platform-specific params already included above
             # Create unified query
             query = UnifiedSearchQuery(**query_params)
 
@@ -275,31 +319,42 @@ Search Syntax Guide:
                     match_regex=platform_params.match_regex,
                     sort_by=platform_params.sort_by
                 )
-            else:
-                # Use command-line tools (mdfind/locate)
-                platform_params = None
-                if current_platform == 'darwin':
-                    platform_params = query.mac_params or {}
-                elif current_platform == 'linux':
-                    platform_params = query.linux_params or {}
-
+            elif current_platform == 'darwin':
+                # Use mdfind on macOS
+                mac_params_obj = query.mac_params or MacSpecificParams()
                 results = search_provider.search_files(
                     query=query.query,
                     max_results=query.max_results,
-                    **platform_params.dict() if platform_params else {}
+                    # Mac-specific parameters
+                    search_directory=mac_params_obj.search_directory,
+                    live_updates=mac_params_obj.live_updates,
+                    literal_query=mac_params_obj.literal_query,
+                    interpret_query=mac_params_obj.interpret_query
+                )
+            elif current_platform == 'linux':
+                # Use locate/plocate on Linux
+                linux_params_obj = query.linux_params or LinuxSpecificParams()
+                results = search_provider.search_files(
+                    query=query.query,
+                    max_results=query.max_results,
+                    # Linux-specific parameters
+                    ignore_case=linux_params_obj.ignore_case,
+                    regex_search=linux_params_obj.regex_search,
+                    existing_files=linux_params_obj.existing_files,
+                    count_only=linux_params_obj.count_only
                 )
             
             return [TextContent(
                 type="text",
-                text="\n".join([
+                text=f"Total: {results.total_count}\n\n" + "\n".join([
                     f"Path: {r.path}\n"
                     f"Filename: {r.filename}"
                     f"{f' ({r.extension})' if r.extension else ''}\n"
                     f"Size: {r.size:,} bytes\n"
-                    f"Created: {r.created if r.created else 'N/A'}\n"
-                    f"Modified: {r.modified if r.modified else 'N/A'}\n"
-                    f"Accessed: {r.accessed if r.accessed else 'N/A'}\n"
-                    for r in results
+                    f"Created: {r.created.isoformat() if r.created else 'N/A'}\n"
+                    f"Modified: {r.modified.isoformat() if r.modified else 'N/A'}\n"
+                    f"Accessed: {r.accessed.isoformat() if r.accessed else 'N/A'}\n"
+                    for r in results.results
                 ])
             )]
         except Exception as e:

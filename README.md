@@ -18,6 +18,10 @@ Parameters:
 
 - `query` (required): Search query string. See platform-specific notes below.
 - `max_results` (optional): Maximum number of results to return (default: 100, max: 1000)
+
+Platform-Specific Parameters:
+
+**Windows:**
 - `match_path` (optional): Match against full path instead of filename only (default: false)
 - `match_case` (optional): Enable case-sensitive search (default: false)
 - `match_whole_word` (optional): Match whole words only (default: false)
@@ -39,20 +43,175 @@ Parameters:
   - 14: Sort by modification date (newest first)
 ```
 
+**macOS:**
+Uses Spotlight's `mdfind` command. Query syntax examples:
+- Filename search: `{"query": "-name ENABLE"}`
+- Metadata query: `{"query": "kMDItemAuthors ==[c] \"John Doe\""}`
+- Kind filter: `{"query": "kind:image date:yesterday"}`
+- Directory scope: Use `search_directory` parameter
+
+Parameters:
+- `live_updates` (optional): Provide live updates to search results (default: false)
+- `search_directory` (optional): Limit search to specific directory (default: null)
+- `literal_query` (optional): Treat query as literal string without interpretation (default: false)
+- `interpret_query` (optional): Interpret query as if typed in Spotlight menu (default: false)
+
+**Linux:**
+- `ignore_case` (optional): Ignore case distinctions (default: true)
+- `regex_search` (optional): Use regular expressions in patterns (default: false)
+- `existing_files` (optional): Only output existing files (default: true)
+- `count_only` (optional): Only display count of matches (default: false). When enabled, `max_results` is ignored and only the total count is returned
+
 Examples:
+
+**Basic (All Platforms):**
+```json
+{
+  "base": {
+    "query": "*.py",
+    "max_results": 50
+  }
+}
+```
+
+**macOS:**
+
+Filename search:
+```json
+{
+  "base": {
+    "query": "-name ENABLE",
+    "max_results": 50
+  },
+  "mac_params": {
+    "search_directory": "/Users/john/Projects"
+  }
+}
+```
+
+Metadata query:
+```json
+{
+  "base": {
+    "query": "kMDItemAuthors ==[c] \"John Doe\"",
+    "max_results": 50
+  }
+}
+```
+
+Kind filter:
+```json
+{
+  "base": {
+    "query": "kind:image date:yesterday",
+    "max_results": 100
+  }
+}
+```
+
+**Linux:**
+
+Basic search with case insensitive:
+```json
+{
+  "base": {
+    "query": "*.py",
+    "max_results": 50
+  },
+  "linux_params": {
+    "ignore_case": true,
+    "existing_files": true
+  }
+}
+```
+
+Regex search:
+```json
+{
+  "base": {
+    "query": "test_.*\\.py$",
+    "max_results": 100
+  },
+  "linux_params": {
+    "regex_search": true
+  }
+}
+```
+
+Count only mode:
+```json
+{
+  "base": {
+    "query": "*.log",
+    "max_results": 1
+  },
+  "linux_params": {
+    "count_only": true
+  }
+}
+```
+
+**Windows:**
 
 ```json
 {
-  "query": "*.py",
-  "max_results": 50,
-  "sort_by": 6
+  "base": {
+    "query": "ext:py datemodified:today",
+    "max_results": 10
+  },
+  "windows_params": {
+    "match_path": true
+  }
+}
+```
+
+**macOS:**
+```json
+{
+  "base": {
+    "query": "kind:image date:yesterday",
+    "max_results": 50
+  },
+  "mac_params": {
+    "live_updates": false
+  }
 }
 ```
 
 ```json
 {
-  "query": "ext:py datemodified:today",
-  "max_results": 10
+  "base": {
+    "query": "kMDItemAuthors ==[c] \"John Doe\""
+  },
+  "mac_params": {
+    "search_directory": "/Users/username/Documents"
+  }
+}
+```
+
+**Linux:**
+```json
+{
+  "base": {
+    "query": "*.py",
+    "max_results": 100
+  },
+  "linux_params": {
+    "ignore_case": true
+  }
+}
+```
+
+```json
+{
+  "base": {
+    "query": "/home/.*\\.txt$",
+    "max_results": 50
+  },
+  "linux_params": {
+    "regex_search": true,
+    "existing_files": true
+  }
 }
 ```
 

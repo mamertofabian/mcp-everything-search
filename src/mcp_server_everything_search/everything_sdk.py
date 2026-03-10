@@ -2,10 +2,9 @@
 
 import ctypes
 import datetime
-import struct
 import sys
-from typing import Any, List
-from pydantic import BaseModel
+
+from .search_interface import SearchResult, SearchResponse
 
 # Everything SDK constants
 EVERYTHING_OK = 0
@@ -69,20 +68,6 @@ WINDOWS_EPOCH = datetime.datetime.strptime('1601-01-01 00:00:00', '%Y-%m-%d %H:%
 POSIX_EPOCH = datetime.datetime.strptime('1970-01-01 00:00:00', '%Y-%m-%d %H:%M:%S')
 EPOCH_DIFF = (POSIX_EPOCH - WINDOWS_EPOCH).total_seconds()
 WINDOWS_TICKS_TO_POSIX_EPOCH = EPOCH_DIFF * WINDOWS_TICKS
-
-class SearchResult(BaseModel):
-    """Model for search results."""
-    path: str
-    filename: str
-    extension: str | None = None
-    size: int
-    created: str | None = None
-    modified: str | None = None
-    accessed: str | None = None
-    attributes: int | None = None
-    run_count: int | None = None
-    highlighted_filename: str | None = None
-    highlighted_path: str | None = None
 
 class EverythingError(Exception):
     """Custom exception for Everything SDK errors."""
@@ -192,7 +177,7 @@ class EverythingSDK:
         match_regex: bool = False,
         sort_by: int = EVERYTHING_SORT_NAME_ASCENDING,
         request_flags: int | None = None
-    ) -> List[SearchResult]:
+    ) -> SearchResponse:
         """Perform file search using Everything SDK."""
         print(f"Debug: Setting up search with query: {query}", file=sys.stderr)
         
@@ -262,9 +247,9 @@ class EverythingSDK:
                     filename=filename,
                     extension=extension,
                     size=file_size.value,
-                    created=self._get_time(date_created.value).isoformat() if date_created.value else None,
-                    modified=self._get_time(date_modified.value).isoformat() if date_modified.value else None,
-                    accessed=self._get_time(date_accessed.value).isoformat() if date_accessed.value else None,
+                    created=self._get_time(date_created.value) if date_created.value else None,
+                    modified=self._get_time(date_modified.value) if date_modified.value else None,
+                    accessed=self._get_time(date_accessed.value) if date_accessed.value else None,
                     attributes=attributes,
                     run_count=run_count,
                     highlighted_filename=highlighted_filename,
@@ -277,4 +262,4 @@ class EverythingSDK:
         print("Debug: Resetting Everything SDK", file=sys.stderr)
         self.dll.Everything_Reset()
 
-        return results
+        return SearchResponse(results=results)

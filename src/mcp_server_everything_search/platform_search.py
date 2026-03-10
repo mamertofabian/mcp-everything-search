@@ -14,7 +14,7 @@ class BaseSearchQuery(BaseModel):
         default=100,
         ge=1,
         le=1000,
-        description="Maximum number of results to return (1-1000)"
+        description="Maximum number of results to return (1-1000). When set, total_count reflects the number of returned results, not the total matches. Use count_only mode (Linux) to get total match count without result limits."
     )
 
 class MacSpecificParams(BaseModel):
@@ -52,7 +52,7 @@ class LinuxSpecificParams(BaseModel):
     )
     count_only: bool = Field(
         default=False,
-        description="Only display count of matches (-c parameter)"
+        description="Only display count of matches (-c parameter). When enabled, max_results is ignored and only the total count is returned"
     )
 
 class WindowsSortOption(int, Enum):
