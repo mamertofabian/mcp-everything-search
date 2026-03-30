@@ -119,6 +119,10 @@ After installation, you can run it as a script using:
 python -m mcp_server_everything_search
 ```
 
+## Hosted deployment
+
+A hosted deployment is available on [Fronteir AI](https://fronteir.ai/mcp/mamertofabian-mcp-everything-search).
+
 ## Configuration
 
 ### Windows
