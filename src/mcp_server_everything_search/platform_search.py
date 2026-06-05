@@ -103,23 +103,37 @@ class UnifiedSearchQuery(BaseSearchQuery):
     def get_schema_for_platform(cls) -> Dict[str, Any]:
         """Get the appropriate schema based on the current platform."""
         system = platform.system().lower()
-        
+
         schema = {
             "type": "object",
-            "properties": {
-                "base": BaseSearchQuery.model_json_schema()
-            },
-            "required": ["base"]
+            "properties": {},
+            "required": ["base"],
         }
-        
+        # Collected $defs from every nested sub-schema, hoisted to the root so
+        # that "#/$defs/..." $ref pointers resolve against the document root as
+        # required by JSON Schema. Pydantic emits these $defs inside each
+        # sub-model's schema; leaving them nested produces dangling pointers
+        # (PointerToNowhere) when an MCP client validates the tool input.
+        root_defs: Dict[str, Any] = {}
+
+        def add_property(name: str, model) -> None:
+            sub = model.model_json_schema()
+            root_defs.update(sub.pop("$defs", {}))
+            schema["properties"][name] = sub
+
+        add_property("base", BaseSearchQuery)
+
         # Add platform-specific parameters
         if system == "darwin":
-            schema["properties"]["mac_params"] = MacSpecificParams.model_json_schema()
+            add_property("mac_params", MacSpecificParams)
         elif system == "linux":
-            schema["properties"]["linux_params"] = LinuxSpecificParams.model_json_schema()
+            add_property("linux_params", LinuxSpecificParams)
         elif system == "windows":
-            schema["properties"]["windows_params"] = WindowsSpecificParams.model_json_schema()
-            
+            add_property("windows_params", WindowsSpecificParams)
+
+        if root_defs:
+            schema["$defs"] = root_defs
+
         return schema
 
     def get_platform_params(self) -> Optional[BaseModel]:
