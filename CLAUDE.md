@@ -120,10 +120,9 @@ Tests drive `create_server` through the in-memory `mcp.Client` with a fake `Sear
 
 ## Installation Methods
 
-The server supports three installation methods:
-1. **Smithery CLI**: `npx -y @smithery/cli install mcp-server-everything-search --client claude`
-2. **uv (recommended)**: Use `uvx mcp-server-everything-search`
-3. **pip**: `pip install mcp-server-everything-search` then `python -m mcp_server_everything_search`
+The server supports two installation methods (the Smithery listing no longer exists):
+1. **uv (recommended)**: Use `uvx mcp-server-everything-search`
+2. **pip**: `pip install mcp-server-everything-search` then `python -m mcp_server_everything_search`
 
 ## MAID Workflow
 
