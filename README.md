@@ -14,15 +14,20 @@ Search for files and folders across your system. The search capabilities and syn
 - macOS: Basic filename and content search using Spotlight database
 - Linux: Basic filename search using locate database
 
-Parameters:
+Arguments are grouped into a `base` object (all platforms) and a platform-specific object. The server advertises only the current platform's object in its tool schema.
 
-- `query` (required): Search query string. See platform-specific notes below.
-- `max_results` (optional): Maximum number of results to return (default: 100, max: 1000)
-- `match_path` (optional): Match against full path instead of filename only (default: false)
-- `match_case` (optional): Enable case-sensitive search (default: false)
-- `match_whole_word` (optional): Match whole words only (default: false)
-- `match_regex` (optional): Enable regex search (default: false)
-- `sort_by` (optional): Sort order for results (default: 1). Available options:
+`base` (required):
+
+- `query` (required): Search query string. See the [syntax guide](SEARCH_SYNTAX.md).
+- `max_results` (optional): Maximum number of results to return (default: 100, range: 1-1000)
+
+`windows_params` (optional, Windows only):
+
+- `match_path`: Match against full path instead of filename only (default: false)
+- `match_case`: Enable case-sensitive search (default: false)
+- `match_whole_word`: Match whole words only (default: false)
+- `match_regex`: Enable regex search (default: false)
+- `sort_by`: Sort order for results (default: 1). Available options:
 
 ```
   - 1: Sort by filename (A to Z)
@@ -39,28 +44,31 @@ Parameters:
   - 14: Sort by modification date (newest first)
 ```
 
+`mac_params` (macOS) and `linux_params` (Linux) appear in the tool schema but are not applied to searches yet ([#30](https://github.com/mamertofabian/mcp-everything-search/issues/30)).
+
 Examples:
 
 ```json
 {
-  "query": "*.py",
-  "max_results": 50,
-  "sort_by": 6
+  "base": {"query": "*.py", "max_results": 50},
+  "windows_params": {"sort_by": 6}
 }
 ```
 
 ```json
 {
-  "query": "ext:py datemodified:today",
-  "max_results": 10
+  "base": {"query": "ext:py datemodified:today", "max_results": 10}
 }
 ```
 
-Response includes:
+Each result includes:
 
-- File/folder path
-- File size in bytes
-- Last modified date
+- `Path`: full path
+- `Filename`: name, with the extension in parentheses when present
+- `Size`: size in bytes
+- `Created`, `Modified`, `Accessed`: timestamps, or `N/A` when unavailable
+
+If a search fails (invalid arguments, Everything not running, and so on), the tool returns an error result (`isError: true`) whose text starts with `Search failed:`.
 
 ### Search Syntax Guide
 

@@ -20,6 +20,10 @@ This release restores a working install and fixes the Windows `sort_by` schema. 
 - Failed searches (invalid arguments, Everything not running, etc.) now return a tool result with `isError: true` and the message `Search failed: ...`, instead of a normal-looking text result.
 - Calling an unknown tool name returns a JSON-RPC invalid-params error (-32602).
 
+### Documentation
+
+- README now documents the real argument structure (`base` plus `windows_params`), with examples that validate against the tool schema (#19), the full result fields, and the error result.
+
 ### Development
 
 - Tests for the tool schema, argument parsing, result formatting and the MCP server, run in CI on Windows, macOS and Linux with Python 3.10 and 3.13.
