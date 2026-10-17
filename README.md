@@ -1,5 +1,7 @@
 # Everything Search MCP Server
 
+<!-- mcp-name: io.github.mamertofabian/mcp-everything-search -->
+
 [![PyPI](https://img.shields.io/pypi/v/mcp-server-everything-search)](https://pypi.org/project/mcp-server-everything-search/)
 [![CI](https://github.com/mamertofabian/mcp-everything-search/actions/workflows/ci.yml/badge.svg)](https://github.com/mamertofabian/mcp-everything-search/actions/workflows/ci.yml)
 

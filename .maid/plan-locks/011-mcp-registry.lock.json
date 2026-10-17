@@ -1,0 +1,178 @@
+{
+  "manifest_path": "manifests/011-mcp-registry.manifest.yaml",
+  "manifest_hash": "sha256-contract:ee8f3a48df7a75849dc9d6786161b37c21beae2bec1ea130a34c250df5496624",
+  "test_hashes": {
+    "tests/test_release_metadata.py": "sha256-pyast:v2:2f801540cb4dcf26748f9c9282f188b313f56a0fb0f61211741f28c12ac9e18e",
+    "tests/test_registry_metadata.py": "sha256-pyast:v2:705358b53eff822a6c410df5ccb72e641d05766078cba0d40b7b842dfbd3c8ab"
+  },
+  "created_at": "2026-10-17T05:14:29.827342+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:6f3457b4eb19f751f1ddbec944c708d15c5a7c663e54d4c27b4d2254116c6279",
+      "prior_test_hashes": {
+        "tests/test_release_metadata.py": "sha256-pyast:v2:2f801540cb4dcf26748f9c9282f188b313f56a0fb0f61211741f28c12ac9e18e",
+        "tests/test_package_classifiers.py": "sha256-pyast:v2:53d92cb3208a5917a8ae5b3b3d2877119dc3c5f576e2c53f150e76785ea154dc",
+        "tests/test_registry_metadata.py": "sha256-pyast:v2:705358b53eff822a6c410df5ccb72e641d05766078cba0d40b7b842dfbd3c8ab"
+      },
+      "revised_at": "2026-10-17T05:14:30.538181+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/011-mcp-registry.manifest.yaml -> manifests/011-mcp-registry.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:620c5e37988a8a8db740113d0888a4c113bc4f89773242a60bb0f737f61a52c1",
+      "prior_test_hashes": {
+        "tests/test_release_metadata.py": "sha256-pyast:v2:2f801540cb4dcf26748f9c9282f188b313f56a0fb0f61211741f28c12ac9e18e",
+        "tests/test_package_classifiers.py": "sha256-pyast:v2:53d92cb3208a5917a8ae5b3b3d2877119dc3c5f576e2c53f150e76785ea154dc",
+        "tests/test_registry_metadata.py": "sha256-pyast:v2:705358b53eff822a6c410df5ccb72e641d05766078cba0d40b7b842dfbd3c8ab"
+      },
+      "revised_at": "2026-10-17T05:15:00.437677+00:00",
+      "reason": "Metadata-only: removed tests/test_package_classifiers.py from files.read (context only; E230 required read-listed tests to run).",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [
+          "read:tests/test_package_classifiers.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-17T05:14:30.147537+00:00",
+    "commands": [
+      {
+        "command": "uv run pytest tests/test_registry_metadata.py tests/test_release_metadata.py -q",
+        "exit_code": 1,
+        "output_tail": "             errors=None, newline=None):\n        \"\"\"\n        Open the file pointed by this path and return a file object, as\n        the built-in open() function does.\n        \"\"\"\n        if \"b\" not in mode:\n            encoding = io.text_encoding(encoding)\n>       return self._accessor.open(self, mode, buffering, encoding, errors,\n                                   newline)\nE       FileNotFoundError: [Errno 2] No such file or directory: '/home/atomrem/projects/codefrost-dev/mcp-everything-search/server.json'\n\n../../../.local/share/uv/python/cpython-3.10-linux-x86_64-gnu/lib/python3.10/pathlib.py:1119: FileNotFoundError\n=========================== short test summary info ============================\nFAILED tests/test_registry_metadata.py::test_server_name_is_declared_in_the_published_readme\nFAILED tests/test_registry_metadata.py::test_server_json_conforms_to_the_registry_schema\nFAILED tests/test_registry_metadata.py::test_server_json_versions_match_the_installed_package\nFAILED tests/test_registry_metadata.py::test_server_json_points_at_the_pypi_stdio_package\nFAILED tests/test_registry_metadata.py::test_server_json_declares_every_environment_variable_the_server_reads\nFAILED tests/test_registry_metadata.py::test_server_json_description_fits_the_registry_limit\n6 failed, 5 passed in 0.15s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": {
+    "model": "claude-opus-5-5",
+    "client": "claude-code",
+    "skills": [
+      "maid-planner"
+    ],
+    "source": "flags"
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/test_registry_metadata.py:test_server_json_conforms_to_the_registry_schema",
+      "tests/test_registry_metadata.py:test_server_json_conforms_to_the_registry_schema:kind=test_function",
+      "tests/test_registry_metadata.py:test_server_json_declares_every_environment_variable_the_server_reads",
+      "tests/test_registry_metadata.py:test_server_json_declares_every_environment_variable_the_server_reads:kind=test_function",
+      "tests/test_registry_metadata.py:test_server_json_description_fits_the_registry_limit",
+      "tests/test_registry_metadata.py:test_server_json_description_fits_the_registry_limit:kind=test_function",
+      "tests/test_registry_metadata.py:test_server_json_points_at_the_pypi_stdio_package",
+      "tests/test_registry_metadata.py:test_server_json_points_at_the_pypi_stdio_package:kind=test_function",
+      "tests/test_registry_metadata.py:test_server_json_versions_match_the_installed_package",
+      "tests/test_registry_metadata.py:test_server_json_versions_match_the_installed_package:kind=test_function",
+      "tests/test_registry_metadata.py:test_server_name_is_declared_in_the_published_readme",
+      "tests/test_registry_metadata.py:test_server_name_is_declared_in_the_published_readme:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/test_registry_metadata.py"
+      ],
+      "edit": [],
+      "read": [
+        "tests/test_release_metadata.py"
+      ],
+      "scope": [
+        "CHANGELOG.md",
+        "README.md",
+        "pyproject.toml",
+        "server.json",
+        "tests/fixtures/server.schema.2025-12-11.json",
+        "uv.lock"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_registry_metadata.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_server_name_is_declared_in_the_published_readme"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_server_json_conforms_to_the_registry_schema"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_server_json_versions_match_the_installed_package"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_server_json_points_at_the_pypi_stdio_package"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_server_json_declares_every_environment_variable_the_server_reads"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_server_json_description_fits_the_registry_limit"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "tests/test_release_metadata.py"
+      ],
+      "scope": [
+        {
+          "path": "server.json",
+          "reason": "MCP Registry server definition."
+        },
+        {
+          "path": "README.md",
+          "reason": "Hidden mcp-name marker for registry PyPI ownership verification."
+        },
+        {
+          "path": "pyproject.toml",
+          "reason": "Version 0.3.2."
+        },
+        {
+          "path": "uv.lock",
+          "reason": "Project version."
+        },
+        {
+          "path": "CHANGELOG.md",
+          "reason": "0.3.2 section (006 release metadata tests)."
+        },
+        {
+          "path": "tests/fixtures/server.schema.2025-12-11.json",
+          "reason": "Vendored registry schema (draft-07) for offline validation; server.json $schema must equal its $id."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/test_registry_metadata.py",
+      "tests/test_release_metadata.py"
+    ],
+    "validate_commands": [
+      "uv run pytest tests/test_registry_metadata.py tests/test_release_metadata.py -q"
+    ],
+    "acceptance_commands": []
+  }
+}

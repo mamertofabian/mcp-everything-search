@@ -1,0 +1,38 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.mamertofabian/mcp-everything-search",
+  "title": "Everything Search",
+  "description": "Fast file search: Everything SDK on Windows, Spotlight (mdfind) on macOS, locate/plocate on Linux.",
+  "repository": {
+    "url": "https://github.com/mamertofabian/mcp-everything-search",
+    "source": "github"
+  },
+  "version": "0.3.2",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "identifier": "mcp-server-everything-search",
+      "version": "0.3.2",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "EVERYTHING_SDK_PATH",
+          "description": "Windows only (required there): full path to Everything64.dll from the Everything SDK",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "filepath"
+        },
+        {
+          "name": "EVERYTHING_SEARCH_TOOL_NAME",
+          "description": "Optional tool name (letters, digits, _ and -, 1-64 chars) if 'search' collides with another server",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string",
+          "default": "search"
+        }
+      ]
+    }
+  ]
+}

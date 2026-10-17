@@ -1,0 +1,153 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+sequence_number: 11
+goal: Publish the server to the official MCP Registry as io.github.mamertofabian/mcp-everything-search
+type: feature
+created: '2026-10-17T05:14:30Z'
+metadata:
+  tags:
+  - release
+  - registry
+description: 'The official modelcontextprotocol/servers README no longer lists community
+
+  servers and points to the MCP Registry, where this server is not published.
+
+  PulseMCP shows a placeholder mirror "until the maintainer publishes it", and
+
+  Glama/mcp.directory import from the registry.
+
+
+  Add server.json (template from mcp-publisher 1.8.1 init, schema 2025-12-11):
+
+  name io.github.mamertofabian/mcp-everything-search, PyPI package
+
+  mcp-server-everything-search over stdio, and the two environment variables
+
+  the server reads (EVERYTHING_SDK_PATH, Windows only; EVERYTHING_SEARCH_TOOL_NAME,
+
+  default "search"). Both are isRequired: false because the registry entry is
+
+  cross-platform; the SDK path is required on Windows and documented as such.
+
+
+  The registry verifies PyPI ownership by finding `mcp-name: <name>` in the
+
+  package description (README), so the README gains a hidden HTML comment and the
+
+  release is bumped to 0.3.2 (PyPI descriptions are fixed per version).
+
+
+  Tests keep server.json in sync with the installed package (name/README marker,
+
+  both versions, identifier, transport, environment variables, description length
+
+  <= 100 per the schema). Publishing (mcp-publisher login/publish) and tagging
+
+  are separate, user-approved steps.
+
+
+  Release order (separate, user-approved): tag and publish 0.3.2 to PyPI, confirm
+
+  the PyPI description contains the marker, then `mcp-publisher login github`
+
+  and `mcp-publisher publish`. Publishing before 0.3.2 is live fails ownership
+
+  verification because 0.3.1''s description has no marker.'
+temptations:
+- risk: Hard-coding version strings in server.json tests.
+  instead: Compare server.json versions with importlib.metadata.version().
+- risk: Marking EVERYTHING_SDK_PATH as required, which blocks macOS/Linux installs in registry clients.
+  instead: Mark it optional and say 'required on Windows' in its description.
+files:
+  create:
+  - path: tests/test_registry_metadata.py
+    artifacts:
+    - kind: test_function
+      name: test_server_name_is_declared_in_the_published_readme
+    - kind: test_function
+      name: test_server_json_conforms_to_the_registry_schema
+    - kind: test_function
+      name: test_server_json_versions_match_the_installed_package
+    - kind: test_function
+      name: test_server_json_points_at_the_pypi_stdio_package
+    - kind: test_function
+      name: test_server_json_declares_every_environment_variable_the_server_reads
+    - kind: test_function
+      name: test_server_json_description_fits_the_registry_limit
+  scope:
+  - path: server.json
+    reason: MCP Registry server definition.
+  - path: README.md
+    reason: Hidden mcp-name marker for registry PyPI ownership verification.
+  - path: pyproject.toml
+    reason: Version 0.3.2.
+  - path: uv.lock
+    reason: Project version.
+  - path: CHANGELOG.md
+    reason: 0.3.2 section (006 release metadata tests).
+  - path: tests/fixtures/server.schema.2025-12-11.json
+    reason: Vendored registry schema (draft-07) for offline validation; server.json $schema must equal its $id.
+  read:
+  - tests/test_release_metadata.py
+validate:
+- - uv
+  - run
+  - pytest
+  - tests/test_registry_metadata.py
+  - tests/test_release_metadata.py
+  - -q
+outcome:
+  status: completed
+  completed_at: '2026-10-17T19:00:00+08:00'
+  summary: server.json for io.github.mamertofabian/mcp-everything-search validated against the vendored 2025-12-11
+    schema; README carries the mcp-name marker; version 0.3.2.
+  agent:
+    model: claude-opus-5-5
+    client: claude-code
+    skills:
+    - maid-planner
+    - maid-implementer
+    - maid-implementation-review
+  lessons:
+  - lesson_type: process
+    summary: 'MAID E230: test files listed under files.read must be run by the manifest''s validate commands; keep
+      context-only tests out of read.'
+    paths:
+    - manifests/011-mcp-registry.manifest.yaml
+    tags:
+    - maid-runner-feedback
+  review_notes:
+  - source: maid-plan-reviewer
+    severity: ready
+    summary: Approved after literal marker regex, isRequired assertions, vendored-schema validation and release-order
+      note.
+  - source: maid-implementation-reviewer
+    severity: ready
+    summary: Ready to merge; env vars match code, marker hidden on GitHub/PyPI, no src changes.
+  validation:
+  - command:
+    - uv
+    - run
+    - pytest
+    - -q
+    status: passed
+    summary: 191 passed, 1 skipped; red evidence exit 1.
+  - command:
+    - scripts/maid
+    - verify
+    - --profile
+    - handoff
+    - --summary
+    - --advisory
+    - --plan-lock-scope
+    - task
+    - --file-tracking-scope
+    - task
+    - --since
+    - d140e89
+    status: passed
+    summary: 9/9 gates; known E310 only.

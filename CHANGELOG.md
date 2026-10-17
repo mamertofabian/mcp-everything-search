@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## 0.3.2 - unreleased
+
+### Added
+
+- Published to the official [MCP Registry](https://registry.modelcontextprotocol.io/) as `io.github.mamertofabian/mcp-everything-search` (`server.json`). Directories that import from the registry (such as PulseMCP and Glama) pick it up from there.
+
+No code changes since 0.3.1.
+
 ## 0.3.1 - 2026-10-17
 
 This release borrows fixes from community forks: more robust Windows results, hardened search commands, and an optional tool name.
