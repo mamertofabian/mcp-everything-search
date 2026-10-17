@@ -1,0 +1,140 @@
+{
+  "manifest_path": "manifests/006-release-0-3-0.manifest.yaml",
+  "manifest_hash": "sha256-contract:660a687df9fe5a4942ebd26a33e5630c3dfd2a796153d44174ef94718ad710f1",
+  "test_hashes": {
+    "tests/test_release_metadata.py": "sha256-pyast:v2:2f801540cb4dcf26748f9c9282f188b313f56a0fb0f61211741f28c12ac9e18e"
+  },
+  "created_at": "2026-10-17T02:47:11.578545+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:cbed2125708c5382425913c04e180b3b49242f4c13b1a8782637d88b5afc5135",
+      "prior_test_hashes": {
+        "tests/test_release_metadata.py": "sha256-pyast:v2:2f801540cb4dcf26748f9c9282f188b313f56a0fb0f61211741f28c12ac9e18e"
+      },
+      "revised_at": "2026-10-17T02:47:12.208520+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/006-release-0-3-0.manifest.yaml -> manifests/006-release-0-3-0.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-17T02:47:11.830896+00:00",
+    "commands": [
+      {
+        "command": "uv run pytest tests/test_release_metadata.py -q",
+        "exit_code": 1,
+        "output_tail": "    def open(self, mode='r', buffering=-1, encoding=None,\n             errors=None, newline=None):\n        \"\"\"\n        Open the file pointed by this path and return a file object, as\n        the built-in open() function does.\n        \"\"\"\n        if \"b\" not in mode:\n            encoding = io.text_encoding(encoding)\n>       return self._accessor.open(self, mode, buffering, encoding, errors,\n                                   newline)\nE       FileNotFoundError: [Errno 2] No such file or directory: '/home/atomrem/projects/codefrost-dev/mcp-everything-search/CHANGELOG.md'\n\n../../../.local/share/uv/python/cpython-3.10-linux-x86_64-gnu/lib/python3.10/pathlib.py:1119: FileNotFoundError\n=========================== short test summary info ============================\nFAILED tests/test_release_metadata.py::test_installed_version_has_a_changelog_section\nFAILED tests/test_release_metadata.py::test_changelog_lists_newest_version_first\nFAILED tests/test_release_metadata.py::test_changelog_versions_are_strictly_descending\nFAILED tests/test_release_metadata.py::test_changelog_documents_every_earlier_pypi_release\nFAILED tests/test_release_metadata.py::test_every_changelog_section_has_content\n5 failed in 0.09s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": {
+    "model": "claude-opus-5-5",
+    "client": "claude-code",
+    "skills": [
+      "maid-planner"
+    ],
+    "source": "flags"
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/test_release_metadata.py:test_changelog_documents_every_earlier_pypi_release",
+      "tests/test_release_metadata.py:test_changelog_documents_every_earlier_pypi_release:kind=test_function",
+      "tests/test_release_metadata.py:test_changelog_lists_newest_version_first",
+      "tests/test_release_metadata.py:test_changelog_lists_newest_version_first:kind=test_function",
+      "tests/test_release_metadata.py:test_changelog_versions_are_strictly_descending",
+      "tests/test_release_metadata.py:test_changelog_versions_are_strictly_descending:kind=test_function",
+      "tests/test_release_metadata.py:test_every_changelog_section_has_content",
+      "tests/test_release_metadata.py:test_every_changelog_section_has_content:kind=test_function",
+      "tests/test_release_metadata.py:test_installed_version_has_a_changelog_section",
+      "tests/test_release_metadata.py:test_installed_version_has_a_changelog_section:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/test_release_metadata.py"
+      ],
+      "edit": [],
+      "read": [
+        "manifests/001-windows-tool-schema-refs.manifest.yaml",
+        "manifests/002-port-server-to-mcp-2.manifest.yaml",
+        "manifests/003-raw-syntax-guide-strings.manifest.yaml",
+        "manifests/004-ci-workflow.manifest.yaml",
+        "manifests/005-pin-ci-action-tags.manifest.yaml"
+      ],
+      "scope": [
+        "CHANGELOG.md",
+        "pyproject.toml",
+        "uv.lock"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_release_metadata.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_installed_version_has_a_changelog_section"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_changelog_lists_newest_version_first"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_changelog_versions_are_strictly_descending"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_changelog_documents_every_earlier_pypi_release"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_every_changelog_section_has_content"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/001-windows-tool-schema-refs.manifest.yaml",
+        "manifests/002-port-server-to-mcp-2.manifest.yaml",
+        "manifests/003-raw-syntax-guide-strings.manifest.yaml",
+        "manifests/004-ci-workflow.manifest.yaml",
+        "manifests/005-pin-ci-action-tags.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "CHANGELOG.md",
+          "reason": "New changelog with 0.3.0 release notes and prior versions."
+        },
+        {
+          "path": "pyproject.toml",
+          "reason": "Version 0.2.1 -> 0.3.0."
+        },
+        {
+          "path": "uv.lock",
+          "reason": "Lockfile records the project version."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/test_release_metadata.py"
+    ],
+    "validate_commands": [
+      "uv run pytest tests/test_release_metadata.py -q"
+    ],
+    "acceptance_commands": []
+  }
+}

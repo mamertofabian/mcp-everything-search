@@ -1,0 +1,133 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+sequence_number: 6
+goal: Prepare the 0.3.0 release with a changelog that documents every released version
+type: feature
+created: '2026-10-17T02:47:12Z'
+metadata:
+  tags:
+  - release
+description: |
+  Bump the package version from 0.2.1 to 0.3.0 and add CHANGELOG.md. 0.3.0 is
+  a minor bump (pre-1.0) because it requires mcp>=2.0.0,<3 and search failures
+  now return is_error=True.
+
+  CHANGELOG.md is also the source for the GitHub release body:
+  publish-to-test-pypi.yml creates the release with empty notes, so the notes
+  are added with `gh release edit` after the tag workflow finishes.
+
+  The test reads the installed distribution version (what PyPI users get) and
+  requires a matching "## <version>" section, newest first, so future releases
+  cannot ship undocumented. Earlier releases come from PyPI (0.1.0
+  2024-12-15, 0.1.2 2024-12-16, 0.2.1 2024-12-19; 0.1.0 has no git tag), and
+  the tests require each to be documented, in strictly descending order, with
+  non-empty sections. Pushing the v0.3.0 tag (which publishes to PyPI)
+  is a separate, user-approved step and not part of this manifest.
+temptations:
+- risk: "Hard-coding 0.3.0 in the test so it must be edited every release."
+  instead: "Compare importlib.metadata.version() with the changelog headings."
+files:
+  create:
+  - path: tests/test_release_metadata.py
+    artifacts:
+    - kind: test_function
+      name: test_installed_version_has_a_changelog_section
+    - kind: test_function
+      name: test_changelog_lists_newest_version_first
+    - kind: test_function
+      name: test_changelog_versions_are_strictly_descending
+    - kind: test_function
+      name: test_changelog_documents_every_earlier_pypi_release
+    - kind: test_function
+      name: test_every_changelog_section_has_content
+  scope:
+  - path: CHANGELOG.md
+    reason: New changelog with 0.3.0 release notes and prior versions.
+  - path: pyproject.toml
+    reason: Version 0.2.1 -> 0.3.0.
+  - path: uv.lock
+    reason: Lockfile records the project version.
+  read:
+  - manifests/001-windows-tool-schema-refs.manifest.yaml
+  - manifests/002-port-server-to-mcp-2.manifest.yaml
+  - manifests/003-raw-syntax-guide-strings.manifest.yaml
+  - manifests/004-ci-workflow.manifest.yaml
+  - manifests/005-pin-ci-action-tags.manifest.yaml
+validate:
+- - uv
+  - run
+  - pytest
+  - tests/test_release_metadata.py
+  - -q
+outcome:
+  status: completed
+  completed_at: '2026-10-17T12:20:00+08:00'
+  summary: Version 0.3.0 with CHANGELOG.md; tests require every release to be documented, newest first. Built wheel
+    requires mcp<3,>=2.0.0 and starts under a fresh uvx install.
+  rationale: Minor bump because the release requires mcp 2.x and changes failure reporting to is_error. Tagging/publishing
+    remains a separate user-approved step; the 0.3.0 heading date is set in the release commit before tagging.
+  agent:
+    model: claude-opus-5-5
+    client: claude-code
+    skills:
+    - maid-planner
+    - maid-implementer
+    - maid-implementation-review
+  lessons:
+  - lesson_type: test-pattern
+    summary: Tie the changelog to importlib.metadata.version() and to the PyPI release history instead of hard-coding
+      the next version.
+    paths:
+    - tests/test_release_metadata.py
+    tags:
+    - release
+  review_notes:
+  - source: maid-plan-reviewer
+    severity: ready
+    summary: Approved after adding earlier-release, strict-order and non-empty-section checks and an anchored heading
+      regex; duplicate/fence handling tightened.
+  - source: maid-implementation-reviewer
+    severity: ready
+    summary: 'Ready to merge after changelog fixes: Gemini claim hedged, credits split per PR/issue, mcp 1.30 sort_by
+      claim made specific and cited here.'
+  validation:
+  - command:
+    - uv
+    - run
+    - pytest
+    - -q
+    status: passed
+    summary: 97 passed; red evidence exit 1 (CHANGELOG.md missing).
+  - command:
+    - scripts/maid
+    - verify
+    - --profile
+    - handoff
+    - --summary
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --since
+    - c69a158
+    status: passed
+    summary: 9/9 gates passed.
+  - command:
+    - uv
+    - build
+    status: passed
+    summary: 0.3.0 wheel/sdist; METADATA Requires-Dist mcp<3,>=2.0.0; fresh uvx --from <wheel> started and listed
+      the search tool to an MCP client.
+  - command:
+    - powershell
+    - -File
+    - C:\mcptest\run.ps1
+    - pypi-0.2.1-mcp1
+    status: passed
+    summary: 'Evidence for the changelog mcp 1.30 claim: Windows 11 VM, uvx --from mcp-server-everything-search==0.2.1
+      --with ''mcp<2'' resolved mcp 1.30.0; call_tool with windows_params.sort_by=6 returned ''PointerToNowhere:
+      /$defs/WindowsSortOption does not exist'', while the same query without sort_by returned results.'
