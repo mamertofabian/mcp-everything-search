@@ -1,8 +1,11 @@
 # Everything Search MCP Server
 
-[![smithery badge](https://smithery.ai/badge/mcp-server-everything-search)](https://smithery.ai/server/mcp-server-everything-search)
+[![PyPI](https://img.shields.io/pypi/v/mcp-server-everything-search)](https://pypi.org/project/mcp-server-everything-search/)
+[![CI](https://github.com/mamertofabian/mcp-everything-search/actions/workflows/ci.yml/badge.svg)](https://github.com/mamertofabian/mcp-everything-search/actions/workflows/ci.yml)
 
 An MCP server that provides fast file searching capabilities across Windows, macOS, and Linux. On Windows, it uses the [Everything](https://www.voidtools.com/) SDK. On macOS, it uses the built-in `mdfind` command. On Linux, it uses the `locate`/`plocate` command.
+
+Requires Python 3.10+. Since 0.3.0 the server is built on the MCP Python SDK 2.x. See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
 ## Tools
 
@@ -105,6 +108,7 @@ For detailed information about the search syntax supported on each platform (Win
 2. Everything SDK:
    - Download from https://www.voidtools.com/support/everything/sdk/
    - Extract the SDK files to a location on your system
+   - The same SDK DLL (`Everything64.dll`) also works with Everything 1.5
 
 ### Linux
 
@@ -121,25 +125,23 @@ No additional setup required. The server uses the built-in `mdfind` command.
 
 ## Installation
 
-### Installing via Smithery
-
-To install Everything Search for Claude Desktop automatically via [Smithery](https://smithery.ai/server/mcp-server-everything-search):
-
-```bash
-npx -y @smithery/cli install mcp-server-everything-search --client claude
-```
-
 ### Using uv (recommended)
 
 When using [`uv`](https://docs.astral.sh/uv/) no specific installation is needed. We will
 use [`uvx`](https://docs.astral.sh/uv/guides/tools/) to directly run _mcp-server-everything-search_.
+
+**Upgrading from 0.2.x:** `uvx` may keep using a cached 0.2.1, which fails to start with the current MCP SDK (`'Server' object has no attribute 'list_resources'`, see [#39](https://github.com/mamertofabian/mcp-everything-search/issues/39)). Run it once with the latest version to refresh the cache:
+
+```
+uvx mcp-server-everything-search@latest
+```
 
 ### Using PIP
 
 Alternatively you can install `mcp-server-everything-search` via pip:
 
 ```
-pip install mcp-server-everything-search
+pip install -U mcp-server-everything-search
 ```
 
 After installation, you can run it as a script using:
@@ -164,6 +166,20 @@ EVERYTHING_SDK_PATH=path\to\Everything-SDK\dll\Everything64.dll
 
 No additional configuration required.
 
+### Usage with Claude Code
+
+Windows:
+
+```
+claude mcp add everything-search -e EVERYTHING_SDK_PATH="C:\path\to\Everything-SDK\dll\Everything64.dll" -- uvx mcp-server-everything-search
+```
+
+Linux and macOS:
+
+```
+claude mcp add everything-search -- uvx mcp-server-everything-search
+```
+
 ### Usage with Claude Desktop
 
 Add one of these configurations to your `claude_desktop_config.json` based on your platform:
@@ -172,12 +188,14 @@ Add one of these configurations to your `claude_desktop_config.json` based on yo
 <summary>Windows (using uvx)</summary>
 
 ```json
-"mcpServers": {
-  "everything-search": {
-    "command": "uvx",
-    "args": ["mcp-server-everything-search"],
-    "env": {
-      "EVERYTHING_SDK_PATH": "path/to/Everything-SDK/dll/Everything64.dll"
+{
+  "mcpServers": {
+    "everything-search": {
+      "command": "uvx",
+      "args": ["mcp-server-everything-search"],
+      "env": {
+        "EVERYTHING_SDK_PATH": "path/to/Everything-SDK/dll/Everything64.dll"
+      }
     }
   }
 }
@@ -189,12 +207,14 @@ Add one of these configurations to your `claude_desktop_config.json` based on yo
 <summary>Windows (using pip installation)</summary>
 
 ```json
-"mcpServers": {
-  "everything-search": {
-    "command": "python",
-    "args": ["-m", "mcp_server_everything_search"],
-    "env": {
-      "EVERYTHING_SDK_PATH": "path/to/Everything-SDK/dll/Everything64.dll"
+{
+  "mcpServers": {
+    "everything-search": {
+      "command": "python",
+      "args": ["-m", "mcp_server_everything_search"],
+      "env": {
+        "EVERYTHING_SDK_PATH": "path/to/Everything-SDK/dll/Everything64.dll"
+      }
     }
   }
 }
@@ -206,10 +226,12 @@ Add one of these configurations to your `claude_desktop_config.json` based on yo
 <summary>Linux and macOS</summary>
 
 ```json
-"mcpServers": {
-  "everything-search": {
-    "command": "uvx",
-    "args": ["mcp-server-everything-search"]
+{
+  "mcpServers": {
+    "everything-search": {
+      "command": "uvx",
+      "args": ["mcp-server-everything-search"]
+    }
   }
 }
 ```
@@ -217,10 +239,12 @@ Add one of these configurations to your `claude_desktop_config.json` based on yo
 Or if using pip installation:
 
 ```json
-"mcpServers": {
-  "everything-search": {
-    "command": "python",
-    "args": ["-m", "mcp_server_everything_search"]
+{
+  "mcpServers": {
+    "everything-search": {
+      "command": "python",
+      "args": ["-m", "mcp_server_everything_search"]
+    }
   }
 }
 ```
@@ -239,7 +263,7 @@ Or if you've installed the package in a specific directory or are developing on 
 
 ```
 git clone https://github.com/mamertofabian/mcp-everything-search.git
-cd mcp-everything-search/src/mcp_server_everything_search
+cd mcp-everything-search
 npx @modelcontextprotocol/inspector uv run mcp-server-everything-search
 ```
 
@@ -266,19 +290,33 @@ If you are doing local development, there are two ways to test your changes:
 2. Test using the Claude desktop app. Add the following to your `claude_desktop_config.json`:
 
 ```json
-"everything-search": {
-  "command": "uv",
-  "args": [
-    "--directory",
-    "/path/to/mcp-everything-search/src/mcp_server_everything_search",
-    "run",
-    "mcp-server-everything-search"
-  ],
-  "env": {
-    "EVERYTHING_SDK_PATH": "path/to/Everything-SDK/dll/Everything64.dll"
+{
+  "mcpServers": {
+    "everything-search": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "/path/to/mcp-everything-search",
+        "run",
+        "mcp-server-everything-search"
+      ],
+      "env": {
+        "EVERYTHING_SDK_PATH": "path/to/Everything-SDK/dll/Everything64.dll"
+      }
+    }
   }
 }
 ```
+
+### Tests and checks
+
+```
+uv run pytest
+uv run ruff check
+uv run pyright
+```
+
+CI runs the tests on Windows, macOS and Linux (Python 3.10 and 3.13). Code changes are planned as [MAID](https://github.com/mamertofabian/maid-runner) manifests in `manifests/`; see `CLAUDE.md`/`AGENTS.md` and run `scripts/maid validate` before opening a pull request.
 
 ## License
 
