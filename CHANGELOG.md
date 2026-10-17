@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented here.
 
-## 0.3.1 - unreleased
+## 0.3.1 - 2026-10-17
 
 This release borrows fixes from community forks: more robust Windows results, hardened search commands, and an optional tool name.
 
