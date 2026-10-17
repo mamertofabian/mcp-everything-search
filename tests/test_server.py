@@ -6,6 +6,7 @@ search provider; platform.system() is stubbed so every platform runs anywhere.
 
 import json
 import platform
+import subprocess
 import sys
 from contextlib import asynccontextmanager
 from datetime import datetime
@@ -19,7 +20,11 @@ from pydantic import ValidationError
 
 from mcp_server_everything_search import server as server_module
 from mcp_server_everything_search.platform_search import UnifiedSearchQuery
-from mcp_server_everything_search.search_interface import SearchProvider, SearchResult
+from mcp_server_everything_search.search_interface import (
+    MacSearchProvider,
+    SearchProvider,
+    SearchResult,
+)
 
 
 @pytest.fixture
@@ -77,6 +82,23 @@ class FakeSearchProvider(SearchProvider):
         if self.error:
             raise self.error
         return self.results
+
+    def count_files(
+        self,
+        query: str,
+        ignore_case: bool = True,
+        regex_search: bool = False,
+        existing_files: bool = True,
+    ) -> int:
+        self.calls.append(
+            {
+                "count": query,
+                "ignore_case": ignore_case,
+                "regex_search": regex_search,
+                "existing_files": existing_files,
+            }
+        )
+        return 70
 
 
 REPORT = SearchResult(
@@ -220,18 +242,26 @@ def test_parse_arguments_without_query_raises_validation_error():
         server_module.parse_search_arguments(None)
 
 
-def test_parse_arguments_ignores_mac_and_linux_params_issue_30():
-    # Characterizes current behavior; platform params beyond Windows are dropped (#30).
+def test_parse_arguments_reads_mac_and_linux_params_issue_30():
     query = server_module.parse_search_arguments(
         {
             "base": {"query": "x"},
             "linux_params": {"regex_search": True},
-            "mac_params": {"live_updates": True},
+            "mac_params": '{"search_directory": "/Users/me"}',
         }
     )
 
-    assert query.linux_params is None
-    assert query.mac_params is None
+    assert query.linux_params is not None and query.linux_params.regex_search is True
+    assert (
+        query.mac_params is not None
+        and query.mac_params.search_directory == "/Users/me"
+    )
+
+
+@pytest.mark.parametrize("key", ["mac_params", "linux_params"])
+def test_parse_arguments_rejects_invalid_platform_params_json(key):
+    with pytest.raises(ValueError, match=key):
+        server_module.parse_search_arguments({"base": {"query": "x"}, key: "{not json"})
 
 
 # --- format_results ---
@@ -362,6 +392,101 @@ async def test_server_search_path_follows_system_argument(on_platform):
 
     # Assert
     assert provider.calls[0]["sort_by"] == 5
+
+
+@pytest.mark.anyio
+async def test_server_darwin_search_passes_mac_params_issue_25(on_platform):
+    on_platform("Darwin")
+    provider = FakeSearchProvider()
+    server = server_module.create_server(provider, "darwin")
+
+    async with Client(server) as client:
+        await client.call_tool(
+            "search",
+            {"base": {"query": "ENABLE"}, "mac_params": {"search_directory": "/repo"}},
+        )
+
+    assert provider.calls == [
+        {
+            "query": "ENABLE",
+            "max_results": 100,
+            "search_directory": "/repo",
+            "live_updates": False,
+            "literal_query": False,
+            "interpret_query": False,
+        }
+    ]
+
+
+@pytest.mark.anyio
+async def test_server_linux_search_passes_linux_params_issue_30(on_platform):
+    on_platform("Linux")
+    provider = FakeSearchProvider()
+    server = server_module.create_server(provider, "linux")
+
+    async with Client(server) as client:
+        await client.call_tool(
+            "search", {"base": {"query": "x"}, "linux_params": {"regex_search": True}}
+        )
+
+    assert provider.calls == [
+        {
+            "query": "x",
+            "max_results": 100,
+            "ignore_case": True,
+            "regex_search": True,
+            "existing_files": True,
+        }
+    ]
+
+
+@pytest.mark.anyio
+async def test_server_linux_count_only_returns_match_count(on_platform):
+    # Arrange
+    on_platform("Linux")
+    provider = FakeSearchProvider()
+    server = server_module.create_server(provider, "linux")
+
+    # Act
+    async with Client(server) as client:
+        result = await client.call_tool(
+            "search", {"base": {"query": "x"}, "linux_params": {"count_only": True}}
+        )
+
+    # Assert
+    assert result.is_error is False
+    assert _text(result) == "Total matches: 70"
+    assert provider.calls == [
+        {
+            "count": "x",
+            "ignore_case": True,
+            "regex_search": False,
+            "existing_files": True,
+        }
+    ]
+
+
+@pytest.mark.anyio
+async def test_server_reports_mac_live_updates_as_tool_error(on_platform):
+    on_platform("Darwin")
+    runner_calls: List[List[str]] = []
+
+    def runner(cmd: List[str]) -> "subprocess.CompletedProcess[str]":
+        runner_calls.append(cmd)
+        return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+    server = server_module.create_server(
+        MacSearchProvider(run_command=runner), "darwin"
+    )
+
+    async with Client(server) as client:
+        result = await client.call_tool(
+            "search", {"base": {"query": "x"}, "mac_params": {"live_updates": True}}
+        )
+
+    assert result.is_error is True
+    assert "live_updates" in _text(result)
+    assert runner_calls == []
 
 
 @pytest.mark.anyio

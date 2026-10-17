@@ -21,6 +21,8 @@ from mcp.types import (
     Tool,
 )
 
+from pydantic import BaseModel
+
 from .platform_search import UnifiedSearchQuery, WindowsSpecificParams
 from .search_interface import SearchProvider, SearchResult
 
@@ -174,6 +176,18 @@ Search Syntax Guide:
     )
 
 
+def _platform_params(arguments: Dict[str, Any], key: str) -> Dict[str, Any]:
+    value = arguments[key]
+    if isinstance(value, str):
+        try:
+            return json.loads(value)
+        except json.JSONDecodeError:
+            raise ValueError(f"Invalid JSON in {key}")
+    if isinstance(value, dict):
+        return value
+    raise ValueError(f"'{key}' must be a string or dictionary")
+
+
 def parse_search_arguments(arguments: Optional[Dict[str, Any]]) -> UnifiedSearchQuery:
     """Parse tool arguments into a validated query.
 
@@ -198,17 +212,16 @@ def parse_search_arguments(arguments: Optional[Dict[str, Any]]) -> UnifiedSearch
             raise ValueError("'base' parameter must be a string or dictionary")
 
     if "windows_params" in arguments:
-        if isinstance(arguments["windows_params"], str):
-            try:
-                windows_params = json.loads(arguments["windows_params"])
-            except json.JSONDecodeError:
-                raise ValueError("Invalid JSON in windows_params")
-        elif isinstance(arguments["windows_params"], dict):
-            windows_params = arguments["windows_params"]
-        else:
-            raise ValueError("'windows_params' must be a string or dictionary")
+        windows_params = _platform_params(arguments, "windows_params")
+    platform_params = {
+        key: _platform_params(arguments, key)
+        for key in ("mac_params", "linux_params")
+        if key in arguments
+    }
 
-    return UnifiedSearchQuery(**{**base_params, "windows_params": windows_params})
+    return UnifiedSearchQuery(
+        **{**base_params, "windows_params": windows_params, **platform_params}
+    )
 
 
 def format_results(results: List[SearchResult]) -> str:
@@ -227,32 +240,36 @@ def format_results(results: List[SearchResult]) -> str:
     )
 
 
-def _run_search(
+def _search_text(
     search_provider: SearchProvider, system: str, query: UnifiedSearchQuery
-) -> List[SearchResult]:
+) -> str:
     if system == "windows":
         # Use Everything SDK directly
         windows_params = query.windows_params or WindowsSpecificParams()
-        return search_provider.search_files(
-            query=query.query,
-            max_results=query.max_results,
-            match_path=windows_params.match_path,
-            match_case=windows_params.match_case,
-            match_whole_word=windows_params.match_whole_word,
-            match_regex=windows_params.match_regex,
-            sort_by=windows_params.sort_by,
+        options: Dict[str, Any] = windows_params.model_dump()
+        return format_results(
+            search_provider.search_files(
+                query=query.query, max_results=query.max_results, **options
+            )
         )
 
+    if system == "linux" and query.linux_params and query.linux_params.count_only:
+        options = query.linux_params.model_dump(exclude={"count_only"})
+        return f"Total matches: {search_provider.count_files(query.query, **options)}"
+
     # Use command-line tools (mdfind/locate)
-    platform_params = None
+    platform_params: Optional[BaseModel] = None
     if system == "darwin":
         platform_params = query.mac_params
     elif system == "linux":
         platform_params = query.linux_params
-    return search_provider.search_files(
-        query=query.query,
-        max_results=query.max_results,
-        **(platform_params.model_dump() if platform_params else {}),
+    options = (
+        platform_params.model_dump(exclude={"count_only"}) if platform_params else {}
+    )
+    return format_results(
+        search_provider.search_files(
+            query=query.query, max_results=query.max_results, **options
+        )
     )
 
 
@@ -271,14 +288,14 @@ def create_server(search_provider: SearchProvider, system: str) -> Server:
             raise MCPError(INVALID_PARAMS, f"Unknown tool: {params.name}")
         try:
             query = parse_search_arguments(params.arguments)
-            results = _run_search(search_provider, system, query)
+            text = _search_text(search_provider, system, query)
         except Exception as e:
             return CallToolResult(
                 content=[TextContent(type="text", text=f"Search failed: {str(e)}")],
                 is_error=True,
             )
         return CallToolResult(
-            content=[TextContent(type="text", text=format_results(results))],
+            content=[TextContent(type="text", text=text)],
             is_error=False,
         )
 

@@ -41,6 +41,7 @@ jobs:
       # tests/test_ci_workflow.py fails if a covered file is missing here.
       MAID_COVERED_PATHS: >-
         src/mcp_server_everything_search/platform_search.py
+        src/mcp_server_everything_search/search_interface.py
         src/mcp_server_everything_search/server.py
         tests
       MAID_RUNNER_SPEC: maid-runner[all]==2.28.0
