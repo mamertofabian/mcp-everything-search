@@ -116,7 +116,8 @@ Tests drive `create_server` through the in-memory `mcp.Client` with a fake `Sear
 
 ## Environment Variables
 
-- `EVERYTHING_SDK_PATH` (Windows only): Path to Everything64.dll (default: `D:\dev\tools\Everything-SDK\dll\Everything64.dll`)
+- `EVERYTHING_SDK_PATH` (Windows only, required): Full path to Everything64.dll. There is no default; the server fails at startup if it is unset or not a file.
+- `EVERYTHING_SEARCH_TOOL_NAME` (optional): Tool name, default `search`; must match `^[A-Za-z0-9_-]{1,64}$`.
 
 ## Installation Methods
 

@@ -49,12 +49,12 @@ Arguments are grouped into a `base` object (all platforms) and a platform-specif
 
 `mac_params` (optional, macOS only):
 
-- `search_directory`: Limit the search to a directory (`mdfind -onlyin`)
+- `search_directory`: Limit the search to a directory (`mdfind -onlyin`). `~` is expanded; the directory must exist.
 - `literal_query`: Treat the query as a literal Spotlight query string (`-literal`)
 - `interpret_query`: Interpret the query as if typed in the Spotlight menu (`-interpret`)
 - `live_updates`: Not supported. `mdfind -live` never exits, so setting it returns an error.
 
-By default the query is a filename search (`mdfind -name`). Setting `literal_query` or `interpret_query` passes the query to Spotlight as-is instead.
+By default the query is a filename search (`mdfind -name`). Setting `literal_query` or `interpret_query` passes the query to Spotlight as-is instead; such a query must not start with `-`, because `mdfind` would read it as an option.
 
 `linux_params` (optional, Linux only):
 
@@ -92,7 +92,9 @@ Each result includes:
 - `Size`: size in bytes
 - `Created`, `Modified`, `Accessed`: timestamps, or `N/A` when unavailable
 
-If a search fails (invalid arguments, Everything not running, and so on), the tool returns an error result (`isError: true`) whose text starts with `Search failed:`.
+If a search fails (invalid arguments, Everything not running, a search command taking longer than 30 seconds, and so on), the tool returns an error result (`isError: true`) whose text starts with `Search failed:`.
+
+On Windows, if some matches cannot be read from Everything (for example a file with a corrupt timestamp), the readable results are returned and the output ends with `Warning: N matching result(s) could not be read and were omitted.`
 
 ### Search Syntax Guide
 
@@ -154,17 +156,25 @@ python -m mcp_server_everything_search
 
 ### Windows
 
-The server requires the Everything SDK DLL to be available:
-
-Environment variable:
+Set `EVERYTHING_SDK_PATH` to the full path of `Everything64.dll` from the Everything SDK. It is required: the server stops at startup with an error naming the variable if it is unset or does not point to a file.
 
 ```
-EVERYTHING_SDK_PATH=path\to\Everything-SDK\dll\Everything64.dll
+EVERYTHING_SDK_PATH=C:\path\to\Everything-SDK\dll\Everything64.dll
 ```
 
 ### Linux and macOS
 
 No additional configuration required.
+
+### Tool name
+
+The tool is called `search` by default. If that name collides with another MCP server's tool in your client, rename it:
+
+```
+EVERYTHING_SEARCH_TOOL_NAME=everything_search
+```
+
+The name may use letters, digits, `_` and `-` (1-64 characters). An invalid value stops the server at startup.
 
 ### Usage with Claude Code
 
