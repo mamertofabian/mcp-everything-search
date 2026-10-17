@@ -1,0 +1,4 @@
+interface:
+  display_name: "MAID Incident Logger"
+  short_description: "Record curated MAID workflow drift or gaming incidents"
+  default_prompt: "Use $maid-incident-logger to record a human-curated MAID gaming or implementation-drift incident through the deterministic incident commands, capture the chosen/rejected evidence supplied by the user, and never hand-write incident files, invent metadata fields, or document unshipped behavior."

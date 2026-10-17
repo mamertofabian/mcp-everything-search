@@ -1,0 +1,4 @@
+interface:
+  display_name: "MAID Auditor"
+  short_description: "Audit MAID contracts with advisory Outcome insights"
+  default_prompt: "Use $maid-auditor to audit active MAID manifests for regressions, drift, and broken contracts, run advisory `maid insights` during release or periodic health cadences when an Outcome index is available, keep the audit read-only and verdict-neutral, and report prioritized recommended actions."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "MAID Outcome Enrich"
+  short_description: "Generate advisory Outcome enrichment outside maid-runner"
+  default_prompt: "Use $maid-outcome-enrich to run `maid enrich prompt`, generate a candidate digest with the hosting agent's available model access or a user-selected model, disclose CLOUD-PRIVACY before sending the corpus to any external provider, treat `maid enrich validate` failures as hard stops that require regeneration, and render the validated digest with `maid enrich render`."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "MAID Evolver"
+  short_description: "Intentionally evolve existing MAID manifest contracts"
+  default_prompt: "Use $maid-evolver to revise the current unmerged task with maid plan revise when locked, accounting for committed implementation when choosing revision evidence, or evolve a durable contract accepted into shared project history on any branch through chain merging or supersession."

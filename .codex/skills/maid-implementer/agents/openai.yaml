@@ -1,0 +1,4 @@
+interface:
+  display_name: "MAID Implementer"
+  short_description: "Implement an approved MAID manifest without drifting scope"
+  default_prompt: "Use $maid-implementer to read the approved manifest, restate relevant temptations, load only declared files, implement only the contracted behavior, write plan-revision.md and stop if the plan is wrong, run implementation and behavioral validation, review the result, and report the final validated scope."

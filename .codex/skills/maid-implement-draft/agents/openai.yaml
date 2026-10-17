@@ -1,0 +1,4 @@
+interface:
+  display_name: "MAID Implement Draft"
+  short_description: "Harden, lock, promote, and implement a MAID draft manifest"
+  default_prompt: "Use $maid-implement-draft to implement manifests/drafts/<slug>.manifest.yaml: recall related Outcomes, harden behavioral tests, confirm the red phase, run plan-review, lock the draft, promote with maid manifest promote, then implement with maid-implementer, review with maid-implementation-review, capture Outcome, and run maid assess / verify --profile handoff."

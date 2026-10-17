@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if ! command -v uvx >/dev/null 2>&1; then
+  echo "uvx is required to run MAID." >&2
+  echo "Install uv: https://docs.astral.sh/uv/getting-started/installation/" >&2
+  exit 127
+fi
+
+MAID_RUNNER_SPEC="${MAID_RUNNER_SPEC:-maid-runner[all]@latest}"
+export UV_CACHE_DIR="${UV_CACHE_DIR:-/tmp/uv-cache}"
+export UV_TOOL_DIR="${UV_TOOL_DIR:-/tmp/uv-tools}"
+
+exec uvx --from "$MAID_RUNNER_SPEC" maid "$@"

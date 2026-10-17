@@ -1,0 +1,4 @@
+interface:
+  display_name: "MAID Run Review"
+  short_description: "Generate advisory MAID run reviews outside maid-runner"
+  default_prompt: "Use $maid-run-review to run `maid evaluate run`, build a bounded review request with `maid evaluate prompt`, disclose CLOUD-PRIVACY before sending run evidence to any external provider, generate a candidate review with available model access, treat `maid evaluate validate` failures as hard stops that require regeneration, and render the validated advisory report with `maid evaluate render`."

@@ -1,0 +1,52 @@
+{
+  "root": {
+    "distributable": [
+      "settings.json"
+    ],
+    "descriptions": {
+      "settings.json": "Claude Code settings that run MAID scope checks before write/edit tool events"
+    }
+  },
+  "agents": {
+    "distributable": [
+      "maid-implementation-reviewer.md"
+    ],
+    "descriptions": {
+      "maid-implementation-reviewer.md": "Reviews implementation against the approved MAID manifest"
+    }
+  },
+  "commands": {
+    "distributable": [],
+    "descriptions": {}
+  },
+  "skills": {
+    "distributable": [
+      "maid-planner",
+      "maid-plan-review",
+      "maid-implement-draft",
+      "maid-implementer",
+      "maid-implementation-review",
+      "maid-evolver",
+      "maid-auditor",
+      "maid-incident-logger",
+      "maid-outcome-enrich",
+      "maid-run-review"
+    ],
+    "descriptions": {
+      "maid-planner": "Create a machine-checkable MAID manifest and behavioral tests",
+      "maid-plan-review": "Review a MAID manifest and behavioral tests before implementation",
+      "maid-implement-draft": "Harden, lock, promote, and implement a MAID draft manifest",
+      "maid-implementer": "Implement code against an approved MAID manifest",
+      "maid-implementation-review": "Review implementation scope, artifacts, tests, and validation",
+      "maid-evolver": "Intentionally evolve existing MAID manifest contracts",
+      "maid-auditor": "Audit active manifests for regressions, drift, and broken contracts",
+      "maid-incident-logger": "Record curated MAID workflow drift or gaming incidents",
+      "maid-outcome-enrich": "Generate advisory Outcome enrichment outside maid-runner",
+      "maid-run-review": "Generate advisory MAID run reviews outside maid-runner"
+    }
+  },
+  "metadata": {
+    "maid_runner_version": "2.28.0",
+    "instruction_payload_version": "2026.09.18.1"
+  }
+}

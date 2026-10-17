@@ -1,0 +1,4 @@
+# MAID Runner configuration
+manifest_dir: manifests/
+schema_version: 2
+default_validation_mode: implementation

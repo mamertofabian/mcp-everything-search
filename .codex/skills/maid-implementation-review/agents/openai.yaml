@@ -1,0 +1,4 @@
+interface:
+  display_name: "MAID Implementation Review"
+  short_description: "Review MAID implementation with a reviewer subagent"
+  default_prompt: "Use $maid-implementation-review to review the current MAID-backed implementation against the approved manifest, run an independent read-only reviewer subagent when available, confirm scope and validation integrity, audit fidelity to rationale and temptations, report concrete findings, and end with an explicit merge verdict."
