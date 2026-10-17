@@ -1,0 +1,113 @@
+{
+  "manifest_path": "manifests/003-raw-syntax-guide-strings.manifest.yaml",
+  "manifest_hash": "sha256-contract:5e24c758d16eba5ebf5f2e800c6570be39177fa732dd4833ed219ca2d16ef0b0",
+  "test_hashes": {
+    "tests/test_server.py": "sha256-pyast:v2:89a51c075e2aa4d855060d0e3c95ab455b834fe25b620598b6902cee026d7c4d",
+    "tests/test_server_source.py": "sha256-pyast:v2:99372a179805a6328b3508cee8c1e9a33aebb291f7e509db8d5f08c5a3dddaf6"
+  },
+  "created_at": "2026-10-17T02:28:48.027493+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:410c4f70af08c9ddf0dccde0324d6efe461e8c5b1cb8783d0796aa3759e0969b",
+      "prior_test_hashes": {
+        "tests/test_server.py": "sha256-pyast:v2:89a51c075e2aa4d855060d0e3c95ab455b834fe25b620598b6902cee026d7c4d",
+        "tests/test_server_source.py": "sha256-pyast:v2:99372a179805a6328b3508cee8c1e9a33aebb291f7e509db8d5f08c5a3dddaf6"
+      },
+      "revised_at": "2026-10-17T02:28:49.206672+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/003-raw-syntax-guide-strings.manifest.yaml -> manifests/003-raw-syntax-guide-strings.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-17T02:28:48.627879+00:00",
+    "commands": [
+      {
+        "command": "uv run pytest tests/test_server_source.py tests/test_server.py -q",
+        "exit_code": 1,
+        "output_tail": "\n    def test_server_source_compiles_without_invalid_escape_warnings():\n        # Arrange\n        spec = importlib.util.find_spec(\"mcp_server_everything_search.server\")\n        assert spec is not None and spec.origin is not None\n        source = Path(spec.origin).read_text(encoding=\"utf-8\")\n    \n        # Act / Assert: invalid escapes raise instead of warning\n        with warnings.catch_warnings():\n            warnings.simplefilter(\"error\")\n>           code = compile(source, spec.origin, \"exec\")\nE             File \"/home/atomrem/projects/codefrost-dev/mcp-everything-search/src/mcp_server_everything_search/server.py\", line 55\nE               \"linux\": \"\"\"Linux Locate Search Syntax:\nE                        \nE           SyntaxError: invalid escape sequence '\\.'\n\ntests/test_server_source.py:28: SyntaxError\n=========================== short test summary info ============================\nFAILED tests/test_server_source.py::test_server_source_compiles_without_invalid_escape_warnings\n1 failed, 35 passed in 0.38s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": {
+    "model": "claude-opus-5-5",
+    "client": "claude-code",
+    "skills": [
+      "maid-planner"
+    ],
+    "source": "flags"
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/test_server_source.py:test_server_source_compiles_without_invalid_escape_warnings",
+      "tests/test_server_source.py:test_server_source_compiles_without_invalid_escape_warnings:kind=test_function",
+      "tests/test_server_source.py:test_syntax_guides_keep_literal_backslashes",
+      "tests/test_server_source.py:test_syntax_guides_keep_literal_backslashes:kind=test_function",
+      "tests/test_server_source.py:test_tool_description_text_is_unchanged",
+      "tests/test_server_source.py:test_tool_description_text_is_unchanged:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/test_server_source.py"
+      ],
+      "edit": [],
+      "read": [
+        "tests/test_server.py"
+      ],
+      "scope": [
+        "src/mcp_server_everything_search/server.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_server_source.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_server_source_compiles_without_invalid_escape_warnings"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_syntax_guides_keep_literal_backslashes"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_tool_description_text_is_unchanged"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "tests/test_server.py"
+      ],
+      "scope": [
+        {
+          "path": "src/mcp_server_everything_search/server.py",
+          "reason": "Make the darwin, linux and windows _SYNTAX_DOCS literals raw strings; no public artifact changes."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/test_server.py",
+      "tests/test_server_source.py"
+    ],
+    "validate_commands": [
+      "uv run pytest tests/test_server_source.py tests/test_server.py -q"
+    ],
+    "acceptance_commands": []
+  }
+}

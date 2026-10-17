@@ -1,0 +1,112 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+sequence_number: 3
+goal: Remove invalid escape sequence warnings from the server syntax guides (PR #11)
+type: fix
+created: '2026-10-17T02:28:49Z'
+metadata:
+  tags:
+  - python
+  - warnings
+  pull_requests:
+  - '#11'
+description: |
+  The darwin, linux and windows syntax guide strings in server.py contain
+  literal backslashes ("\.", "C:\Projects"). As non-raw strings these are
+  invalid escape sequences: SyntaxWarning on Python 3.12+ and pyright
+  reportInvalidStringEscapeSequence warnings. PR #11 (pangu / beibeiyhj)
+  made the three guides raw strings; that branch no longer applies after the
+  mcp 2.x port moved the strings to module level, so the same change is
+  re-applied here with the PR author credited as co-author.
+
+  The string values must not change: raw strings are value-identical only
+  because the guides contain no valid escape sequences. The characterization
+  test pins the literal backslashes in the rendered tool description.
+temptations:
+- risk: "Silencing the warning with a warnings filter or by deleting the backslash examples from the guides."
+  instead: "Prefix the three guide literals with r and keep every character of the text."
+files:
+  create:
+  - path: tests/test_server_source.py
+    artifacts:
+    - kind: test_function
+      name: test_server_source_compiles_without_invalid_escape_warnings
+    - kind: test_function
+      name: test_syntax_guides_keep_literal_backslashes
+    - kind: test_function
+      name: test_tool_description_text_is_unchanged
+  scope:
+  - path: src/mcp_server_everything_search/server.py
+    reason: Make the darwin, linux and windows _SYNTAX_DOCS literals raw strings; no public artifact changes.
+  read:
+  - tests/test_server.py
+validate:
+- - uv
+  - run
+  - pytest
+  - tests/test_server_source.py
+  - tests/test_server.py
+  - -q
+outcome:
+  status: completed
+  completed_at: '2026-10-17T10:55:00+08:00'
+  summary: Syntax guide literals are raw strings; server.py compiles without invalid escape warnings and the tool
+    description text is unchanged.
+  rationale: 'Re-applied PR #11 (pangu / beibeiyhj) after the mcp 2.x port moved the strings; credited as co-author.'
+  agent:
+    model: claude-opus-5-5
+    client: claude-code
+    skills:
+    - maid-planner
+    - maid-implementer
+    - maid-implementation-review
+  lessons:
+  - lesson_type: test-pattern
+    summary: Pin full rendered text with a sha256 per variant before value-preserving source edits (raw strings,
+      moves) so any accidental change fails.
+    paths:
+    - tests/test_server_source.py
+    tags:
+    - characterization
+  review_notes:
+  - source: maid-plan-reviewer
+    severity: ready
+    summary: Approved; nits applied (Path.read_text, full-description hash pins).
+  - source: maid-implementation-reviewer
+    severity: ready
+    summary: Ready to merge; _SYNTAX_DOCS values AST-compared equal to 2558ab2, scope-only change, no undeclared
+      files.
+  validation:
+  - command:
+    - uv
+    - run
+    - pytest
+    - -q
+    status: passed
+    summary: '80 passed; red evidence exit 1 (SyntaxError: invalid escape sequence).'
+  - command:
+    - scripts/maid
+    - verify
+    - --profile
+    - handoff
+    - --summary
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --since
+    - 2558ab2
+    status: passed
+    summary: 9/9 gates passed.
+  - command:
+    - uv
+    - run
+    - pyright
+    - src/mcp_server_everything_search/server.py
+    - tests
+    status: passed
+    summary: 0 errors, 0 warnings (escape warnings removed); ruff clean.
