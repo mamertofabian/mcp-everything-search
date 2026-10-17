@@ -44,7 +44,21 @@ Arguments are grouped into a `base` object (all platforms) and a platform-specif
   - 14: Sort by modification date (newest first)
 ```
 
-`mac_params` (macOS) and `linux_params` (Linux) appear in the tool schema but are not applied to searches yet ([#30](https://github.com/mamertofabian/mcp-everything-search/issues/30)).
+`mac_params` (optional, macOS only):
+
+- `search_directory`: Limit the search to a directory (`mdfind -onlyin`)
+- `literal_query`: Treat the query as a literal Spotlight query string (`-literal`)
+- `interpret_query`: Interpret the query as if typed in the Spotlight menu (`-interpret`)
+- `live_updates`: Not supported. `mdfind -live` never exits, so setting it returns an error.
+
+By default the query is a filename search (`mdfind -name`). Setting `literal_query` or `interpret_query` passes the query to Spotlight as-is instead.
+
+`linux_params` (optional, Linux only):
+
+- `ignore_case`: Case-insensitive search, `-i` (default: true)
+- `regex_search`: Treat the query as a regular expression (default: false)
+- `existing_files`: Only list files that still exist, `-e` (default: true)
+- `count_only`: Return only the number of matches, `-c` (default: false)
 
 Examples:
 
@@ -58,6 +72,13 @@ Examples:
 ```json
 {
   "base": {"query": "ext:py datemodified:today", "max_results": 10}
+}
+```
+
+```json
+{
+  "base": {"query": "ENABLE", "max_results": 50},
+  "mac_params": {"search_directory": "/Users/me/code/myrepo"}
 }
 ```
 

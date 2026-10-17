@@ -13,16 +13,18 @@ This release restores a working install and fixes the Windows `sort_by` schema. 
 - Every schema property now declares a `type`, which should stop Gemini CLI from skipping the tool with "missing types in its parameter schema" (#21). Not yet confirmed with Gemini CLI.
 - **Non-ASCII queries returned no results** on Windows systems with a non-UTF-8 locale (#27). mcp 2.x reads stdin as UTF-8. Thanks @WhizZest (#28) for the diagnosis.
 - `SyntaxWarning: invalid escape sequence` on import with Python 3.12+. Thanks @beibeiyhj (#11).
+- **macOS and Linux platform parameters were ignored** (#25, #30). `mac_params.search_directory` now scopes `mdfind` with `-onlyin`, `literal_query`/`interpret_query` pass the query to Spotlight as-is, and `linux_params` (`ignore_case`, `regex_search`, `existing_files`, `count_only`) map to `locate` options. `live_updates` returns an error because `mdfind -live` never exits. Adapted from #32, thanks @WhizZest.
 
 ### Changed
 
 - **Requires `mcp>=2.0.0,<3`.**
 - Failed searches (invalid arguments, Everything not running, etc.) now return a tool result with `isError: true` and the message `Search failed: ...`, instead of a normal-looking text result.
 - Calling an unknown tool name returns a JSON-RPC invalid-params error (-32602).
+- Linux searches now apply the documented `linux_params` defaults even when `linux_params` is omitted: case-insensitive (`-i`) and existing files only (`-e`), limited to `max_results` (`-l`).
 
 ### Documentation
 
-- README now documents the real argument structure (`base` plus `windows_params`), with examples that validate against the tool schema (#19), the full result fields, and the error result.
+- README now documents the real argument structure (`base` plus the platform's `windows_params`, `mac_params` or `linux_params`), with examples that validate against the tool schema (#19), the full result fields, and the error result.
 
 ### Development
 
