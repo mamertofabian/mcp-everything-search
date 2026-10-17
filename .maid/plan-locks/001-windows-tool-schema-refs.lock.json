@@ -1,0 +1,600 @@
+{
+  "manifest_path": "manifests/001-windows-tool-schema-refs.manifest.yaml",
+  "manifest_hash": "sha256-contract:b64add6bd75dfb998c676d59fa90ed7a00c56b8413c93389f17ce60bd6b757bc",
+  "test_hashes": {
+    "tests/test_platform_search.py": "sha256-pyast:v2:3d467761ce1163a4fbc1230d38f32479b7d89bf2ddc29ef23bf161c381a7c1e7"
+  },
+  "created_at": "2026-10-17T01:08:24.726192+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:fef03d121fea9908992e9ada76b1e0fa132d1b72e9eed873018d994555dbc5af",
+      "prior_test_hashes": {
+        "tests/test_platform_search.py": "sha256-pyast:v2:7086a64148ad2d80dba4084cfa55d19bd359a8c16640cc61924dcffb32e68d1c"
+      },
+      "revised_at": "2026-10-17T01:08:25.725474+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/001-windows-tool-schema-refs.manifest.yaml -> manifests/001-windows-tool-schema-refs.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b64add6bd75dfb998c676d59fa90ed7a00c56b8413c93389f17ce60bd6b757bc",
+      "prior_test_hashes": {
+        "tests/test_platform_search.py": "sha256-pyast:v2:7086a64148ad2d80dba4084cfa55d19bd359a8c16640cc61924dcffb32e68d1c"
+      },
+      "revised_at": "2026-10-17T01:09:24.977875+00:00",
+      "reason": "Test-only typing and formatting: pass integer sort_by via model_validate for pyright; ruff format. Behavioral contract unchanged.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b64add6bd75dfb998c676d59fa90ed7a00c56b8413c93389f17ce60bd6b757bc",
+      "prior_test_hashes": {
+        "tests/test_platform_search.py": "sha256-pyast:v2:e206fe2342bd0ddf0c1d347aeeca1780396bd91f44675b134a5f710a3fcf2eab"
+      },
+      "revised_at": "2026-10-17T01:09:52.368577+00:00",
+      "reason": "Test-only: assert empty jsonschema error lists instead of relying on raised exceptions (E210). Contract unchanged.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b64add6bd75dfb998c676d59fa90ed7a00c56b8413c93389f17ce60bd6b757bc",
+      "prior_test_hashes": {
+        "tests/test_platform_search.py": "sha256-pyast:v2:3d467761ce1163a4fbc1230d38f32479b7d89bf2ddc29ef23bf161c381a7c1e7"
+      },
+      "revised_at": "2026-10-17T01:10:09.404362+00:00",
+      "reason": "Recapture red evidence: earlier test-only revise ran with implementation present and recorded green. Tests unchanged since revision 4.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-17T01:10:10.321174+00:00",
+    "commands": [
+      {
+        "command": "uv run pytest tests/test_platform_search.py -q",
+        "exit_code": 1,
+        "output_tail": "    \n        # Assert\n>       assert sort_by[\"type\"] == \"integer\"\nE       KeyError: 'type'\n\ntests/test_platform_search.py:199: KeyError\n=========================== short test summary info ============================\nFAILED tests/test_platform_search.py::test_windows_request_with_sort_by_validates_against_schema\nFAILED tests/test_platform_search.py::test_windows_request_with_unknown_sort_by_is_rejected_by_schema\nFAILED tests/test_platform_search.py::test_every_schema_property_declares_a_type[Windows]\nFAILED tests/test_platform_search.py::test_schema_is_self_contained_without_refs_or_defs[Windows]\nFAILED tests/test_platform_search.py::test_platform_params_schema_exposes_every_field_with_its_type[Windows]\nFAILED tests/test_platform_search.py::test_windows_sort_by_schema_lists_every_sort_option\n6 failed, 34 passed in 0.33s\n\nwarning: The `tool.uv.dev-dependencies` field (used in `pyproject.toml`) is deprecated and will be removed in a future release; use `dependency-groups.dev` instead\n   Building mcp-server-everything-search @ file:///home/atomrem/projects/codefrost-dev/mcp-everything-search\n      Built mcp-server-everything-search @ file:///home/atomrem/projects/codefrost-dev/mcp-everything-search\nUninstalled 1 package in 0.32ms\nInstalled 1 package in 0.66ms",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": {
+    "model": "claude-opus-5-5",
+    "client": "claude-code",
+    "skills": [
+      "maid-planner"
+    ],
+    "source": "flags"
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "src/mcp_server_everything_search/platform_search.py:attribute:BaseSearchQuery.max_results",
+      "src/mcp_server_everything_search/platform_search.py:attribute:BaseSearchQuery.max_results:kind=attribute",
+      "src/mcp_server_everything_search/platform_search.py:attribute:BaseSearchQuery.max_results:of=BaseSearchQuery",
+      "src/mcp_server_everything_search/platform_search.py:attribute:BaseSearchQuery.max_results:type=int",
+      "src/mcp_server_everything_search/platform_search.py:attribute:BaseSearchQuery.query",
+      "src/mcp_server_everything_search/platform_search.py:attribute:BaseSearchQuery.query:kind=attribute",
+      "src/mcp_server_everything_search/platform_search.py:attribute:BaseSearchQuery.query:of=BaseSearchQuery",
+      "src/mcp_server_everything_search/platform_search.py:attribute:BaseSearchQuery.query:type=str",
+      "src/mcp_server_everything_search/platform_search.py:attribute:LinuxSpecificParams.count_only",
+      "src/mcp_server_everything_search/platform_search.py:attribute:LinuxSpecificParams.count_only:kind=attribute",
+      "src/mcp_server_everything_search/platform_search.py:attribute:LinuxSpecificParams.count_only:of=LinuxSpecificParams",
+      "src/mcp_server_everything_search/platform_search.py:attribute:LinuxSpecificParams.count_only:type=bool",
+      "src/mcp_server_everything_search/platform_search.py:attribute:LinuxSpecificParams.existing_files",
+      "src/mcp_server_everything_search/platform_search.py:attribute:LinuxSpecificParams.existing_files:kind=attribute",
+      "src/mcp_server_everything_search/platform_search.py:attribute:LinuxSpecificParams.existing_files:of=LinuxSpecificParams",
+      "src/mcp_server_everything_search/platform_search.py:attribute:LinuxSpecificParams.existing_files:type=bool",
+      "src/mcp_server_everything_search/platform_search.py:attribute:LinuxSpecificParams.ignore_case",
+      "src/mcp_server_everything_search/platform_search.py:attribute:LinuxSpecificParams.ignore_case:kind=attribute",
+      "src/mcp_server_everything_search/platform_search.py:attribute:LinuxSpecificParams.ignore_case:of=LinuxSpecificParams",
+      "src/mcp_server_everything_search/platform_search.py:attribute:LinuxSpecificParams.ignore_case:type=bool",
+      "src/mcp_server_everything_search/platform_search.py:attribute:LinuxSpecificParams.regex_search",
+      "src/mcp_server_everything_search/platform_search.py:attribute:LinuxSpecificParams.regex_search:kind=attribute",
+      "src/mcp_server_everything_search/platform_search.py:attribute:LinuxSpecificParams.regex_search:of=LinuxSpecificParams",
+      "src/mcp_server_everything_search/platform_search.py:attribute:LinuxSpecificParams.regex_search:type=bool",
+      "src/mcp_server_everything_search/platform_search.py:attribute:MacSpecificParams.interpret_query",
+      "src/mcp_server_everything_search/platform_search.py:attribute:MacSpecificParams.interpret_query:kind=attribute",
+      "src/mcp_server_everything_search/platform_search.py:attribute:MacSpecificParams.interpret_query:of=MacSpecificParams",
+      "src/mcp_server_everything_search/platform_search.py:attribute:MacSpecificParams.interpret_query:type=bool",
+      "src/mcp_server_everything_search/platform_search.py:attribute:MacSpecificParams.literal_query",
+      "src/mcp_server_everything_search/platform_search.py:attribute:MacSpecificParams.literal_query:kind=attribute",
+      "src/mcp_server_everything_search/platform_search.py:attribute:MacSpecificParams.literal_query:of=MacSpecificParams",
+      "src/mcp_server_everything_search/platform_search.py:attribute:MacSpecificParams.literal_query:type=bool",
+      "src/mcp_server_everything_search/platform_search.py:attribute:MacSpecificParams.live_updates",
+      "src/mcp_server_everything_search/platform_search.py:attribute:MacSpecificParams.live_updates:kind=attribute",
+      "src/mcp_server_everything_search/platform_search.py:attribute:MacSpecificParams.live_updates:of=MacSpecificParams",
+      "src/mcp_server_everything_search/platform_search.py:attribute:MacSpecificParams.live_updates:type=bool",
+      "src/mcp_server_everything_search/platform_search.py:attribute:MacSpecificParams.search_directory",
+      "src/mcp_server_everything_search/platform_search.py:attribute:MacSpecificParams.search_directory:kind=attribute",
+      "src/mcp_server_everything_search/platform_search.py:attribute:MacSpecificParams.search_directory:of=MacSpecificParams",
+      "src/mcp_server_everything_search/platform_search.py:attribute:MacSpecificParams.search_directory:type=Optional[str]",
+      "src/mcp_server_everything_search/platform_search.py:attribute:UnifiedSearchQuery.linux_params",
+      "src/mcp_server_everything_search/platform_search.py:attribute:UnifiedSearchQuery.linux_params:kind=attribute",
+      "src/mcp_server_everything_search/platform_search.py:attribute:UnifiedSearchQuery.linux_params:of=UnifiedSearchQuery",
+      "src/mcp_server_everything_search/platform_search.py:attribute:UnifiedSearchQuery.linux_params:type=Optional[LinuxSpecificParams]",
+      "src/mcp_server_everything_search/platform_search.py:attribute:UnifiedSearchQuery.mac_params",
+      "src/mcp_server_everything_search/platform_search.py:attribute:UnifiedSearchQuery.mac_params:kind=attribute",
+      "src/mcp_server_everything_search/platform_search.py:attribute:UnifiedSearchQuery.mac_params:of=UnifiedSearchQuery",
+      "src/mcp_server_everything_search/platform_search.py:attribute:UnifiedSearchQuery.mac_params:type=Optional[MacSpecificParams]",
+      "src/mcp_server_everything_search/platform_search.py:attribute:UnifiedSearchQuery.windows_params",
+      "src/mcp_server_everything_search/platform_search.py:attribute:UnifiedSearchQuery.windows_params:kind=attribute",
+      "src/mcp_server_everything_search/platform_search.py:attribute:UnifiedSearchQuery.windows_params:of=UnifiedSearchQuery",
+      "src/mcp_server_everything_search/platform_search.py:attribute:UnifiedSearchQuery.windows_params:type=Optional[WindowsSpecificParams]",
+      "src/mcp_server_everything_search/platform_search.py:attribute:WindowsSpecificParams.match_case",
+      "src/mcp_server_everything_search/platform_search.py:attribute:WindowsSpecificParams.match_case:kind=attribute",
+      "src/mcp_server_everything_search/platform_search.py:attribute:WindowsSpecificParams.match_case:of=WindowsSpecificParams",
+      "src/mcp_server_everything_search/platform_search.py:attribute:WindowsSpecificParams.match_case:type=bool",
+      "src/mcp_server_everything_search/platform_search.py:attribute:WindowsSpecificParams.match_path",
+      "src/mcp_server_everything_search/platform_search.py:attribute:WindowsSpecificParams.match_path:kind=attribute",
+      "src/mcp_server_everything_search/platform_search.py:attribute:WindowsSpecificParams.match_path:of=WindowsSpecificParams",
+      "src/mcp_server_everything_search/platform_search.py:attribute:WindowsSpecificParams.match_path:type=bool",
+      "src/mcp_server_everything_search/platform_search.py:attribute:WindowsSpecificParams.match_regex",
+      "src/mcp_server_everything_search/platform_search.py:attribute:WindowsSpecificParams.match_regex:kind=attribute",
+      "src/mcp_server_everything_search/platform_search.py:attribute:WindowsSpecificParams.match_regex:of=WindowsSpecificParams",
+      "src/mcp_server_everything_search/platform_search.py:attribute:WindowsSpecificParams.match_regex:type=bool",
+      "src/mcp_server_everything_search/platform_search.py:attribute:WindowsSpecificParams.match_whole_word",
+      "src/mcp_server_everything_search/platform_search.py:attribute:WindowsSpecificParams.match_whole_word:kind=attribute",
+      "src/mcp_server_everything_search/platform_search.py:attribute:WindowsSpecificParams.match_whole_word:of=WindowsSpecificParams",
+      "src/mcp_server_everything_search/platform_search.py:attribute:WindowsSpecificParams.match_whole_word:type=bool",
+      "src/mcp_server_everything_search/platform_search.py:attribute:WindowsSpecificParams.sort_by",
+      "src/mcp_server_everything_search/platform_search.py:attribute:WindowsSpecificParams.sort_by:kind=attribute",
+      "src/mcp_server_everything_search/platform_search.py:attribute:WindowsSpecificParams.sort_by:of=WindowsSpecificParams",
+      "src/mcp_server_everything_search/platform_search.py:attribute:WindowsSpecificParams.sort_by:type=WindowsSortOption",
+      "src/mcp_server_everything_search/platform_search.py:class:BaseSearchQuery",
+      "src/mcp_server_everything_search/platform_search.py:class:BaseSearchQuery:base=BaseModel",
+      "src/mcp_server_everything_search/platform_search.py:class:BaseSearchQuery:kind=class",
+      "src/mcp_server_everything_search/platform_search.py:class:LinuxSpecificParams",
+      "src/mcp_server_everything_search/platform_search.py:class:LinuxSpecificParams:base=BaseModel",
+      "src/mcp_server_everything_search/platform_search.py:class:LinuxSpecificParams:kind=class",
+      "src/mcp_server_everything_search/platform_search.py:class:MacSpecificParams",
+      "src/mcp_server_everything_search/platform_search.py:class:MacSpecificParams:base=BaseModel",
+      "src/mcp_server_everything_search/platform_search.py:class:MacSpecificParams:kind=class",
+      "src/mcp_server_everything_search/platform_search.py:class:UnifiedSearchQuery",
+      "src/mcp_server_everything_search/platform_search.py:class:UnifiedSearchQuery:base=BaseSearchQuery",
+      "src/mcp_server_everything_search/platform_search.py:class:UnifiedSearchQuery:kind=class",
+      "src/mcp_server_everything_search/platform_search.py:class:WindowsSpecificParams",
+      "src/mcp_server_everything_search/platform_search.py:class:WindowsSpecificParams:base=BaseModel",
+      "src/mcp_server_everything_search/platform_search.py:class:WindowsSpecificParams:kind=class",
+      "src/mcp_server_everything_search/platform_search.py:enum:WindowsSortOption",
+      "src/mcp_server_everything_search/platform_search.py:enum:WindowsSortOption:base=Enum",
+      "src/mcp_server_everything_search/platform_search.py:enum:WindowsSortOption:base=int",
+      "src/mcp_server_everything_search/platform_search.py:enum:WindowsSortOption:kind=enum",
+      "src/mcp_server_everything_search/platform_search.py:function:build_search_command",
+      "src/mcp_server_everything_search/platform_search.py:function:build_search_command:arg=query:type=UnifiedSearchQuery:default=None",
+      "src/mcp_server_everything_search/platform_search.py:function:build_search_command:kind=function",
+      "src/mcp_server_everything_search/platform_search.py:function:build_search_command:returns=List[str]",
+      "src/mcp_server_everything_search/platform_search.py:method:UnifiedSearchQuery.get_platform_params",
+      "src/mcp_server_everything_search/platform_search.py:method:UnifiedSearchQuery.get_platform_params:kind=method",
+      "src/mcp_server_everything_search/platform_search.py:method:UnifiedSearchQuery.get_platform_params:of=UnifiedSearchQuery",
+      "src/mcp_server_everything_search/platform_search.py:method:UnifiedSearchQuery.get_platform_params:returns=Optional[BaseModel]",
+      "src/mcp_server_everything_search/platform_search.py:method:UnifiedSearchQuery.get_schema_for_platform",
+      "src/mcp_server_everything_search/platform_search.py:method:UnifiedSearchQuery.get_schema_for_platform:kind=method",
+      "src/mcp_server_everything_search/platform_search.py:method:UnifiedSearchQuery.get_schema_for_platform:of=UnifiedSearchQuery",
+      "src/mcp_server_everything_search/platform_search.py:method:UnifiedSearchQuery.get_schema_for_platform:returns=Dict[str, Any]",
+      "tests/test_platform_search.py:test_base_query_defaults_max_results_to_100",
+      "tests/test_platform_search.py:test_base_query_defaults_max_results_to_100:kind=test_function",
+      "tests/test_platform_search.py:test_base_query_rejects_max_results_outside_1_to_1000",
+      "tests/test_platform_search.py:test_base_query_rejects_max_results_outside_1_to_1000:kind=test_function",
+      "tests/test_platform_search.py:test_build_command_darwin_maps_every_mac_option",
+      "tests/test_platform_search.py:test_build_command_darwin_maps_every_mac_option:kind=test_function",
+      "tests/test_platform_search.py:test_build_command_darwin_without_params_is_plain_mdfind",
+      "tests/test_platform_search.py:test_build_command_darwin_without_params_is_plain_mdfind:kind=test_function",
+      "tests/test_platform_search.py:test_build_command_linux_default_params_add_ignore_case_and_existing",
+      "tests/test_platform_search.py:test_build_command_linux_default_params_add_ignore_case_and_existing:kind=test_function",
+      "tests/test_platform_search.py:test_build_command_linux_maps_regex_and_count",
+      "tests/test_platform_search.py:test_build_command_linux_maps_regex_and_count:kind=test_function",
+      "tests/test_platform_search.py:test_build_command_linux_without_params_is_plain_locate",
+      "tests/test_platform_search.py:test_build_command_linux_without_params_is_plain_locate:kind=test_function",
+      "tests/test_platform_search.py:test_build_command_unsupported_platform_raises",
+      "tests/test_platform_search.py:test_build_command_unsupported_platform_raises:kind=test_function",
+      "tests/test_platform_search.py:test_build_command_windows_returns_empty_list",
+      "tests/test_platform_search.py:test_build_command_windows_returns_empty_list:kind=test_function",
+      "tests/test_platform_search.py:test_every_schema_property_declares_a_type",
+      "tests/test_platform_search.py:test_every_schema_property_declares_a_type:kind=test_function",
+      "tests/test_platform_search.py:test_get_platform_params_on_unsupported_platform_returns_none",
+      "tests/test_platform_search.py:test_get_platform_params_on_unsupported_platform_returns_none:kind=test_function",
+      "tests/test_platform_search.py:test_get_platform_params_returns_current_platform_params",
+      "tests/test_platform_search.py:test_get_platform_params_returns_current_platform_params:kind=test_function",
+      "tests/test_platform_search.py:test_linux_params_defaults_ignore_case_and_existing_files_only",
+      "tests/test_platform_search.py:test_linux_params_defaults_ignore_case_and_existing_files_only:kind=test_function",
+      "tests/test_platform_search.py:test_mac_params_defaults_disable_every_option",
+      "tests/test_platform_search.py:test_mac_params_defaults_disable_every_option:kind=test_function",
+      "tests/test_platform_search.py:test_mac_search_directory_schema_allows_string_or_null",
+      "tests/test_platform_search.py:test_mac_search_directory_schema_allows_string_or_null:kind=test_function",
+      "tests/test_platform_search.py:test_platform_params_schema_exposes_every_field_with_its_type",
+      "tests/test_platform_search.py:test_platform_params_schema_exposes_every_field_with_its_type:kind=test_function",
+      "tests/test_platform_search.py:test_schema_exposes_base_and_only_current_platform_params",
+      "tests/test_platform_search.py:test_schema_exposes_base_and_only_current_platform_params:kind=test_function",
+      "tests/test_platform_search.py:test_schema_is_self_contained_without_refs_or_defs",
+      "tests/test_platform_search.py:test_schema_is_self_contained_without_refs_or_defs:kind=test_function",
+      "tests/test_platform_search.py:test_schema_is_valid_json_schema_for_every_platform",
+      "tests/test_platform_search.py:test_schema_is_valid_json_schema_for_every_platform:kind=test_function",
+      "tests/test_platform_search.py:test_schema_on_unsupported_platform_exposes_only_base",
+      "tests/test_platform_search.py:test_schema_on_unsupported_platform_exposes_only_base:kind=test_function",
+      "tests/test_platform_search.py:test_windows_params_accepts_integer_sort_option",
+      "tests/test_platform_search.py:test_windows_params_accepts_integer_sort_option:kind=test_function",
+      "tests/test_platform_search.py:test_windows_params_defaults_to_name_ascending_with_matching_off",
+      "tests/test_platform_search.py:test_windows_params_defaults_to_name_ascending_with_matching_off:kind=test_function",
+      "tests/test_platform_search.py:test_windows_params_rejects_unknown_sort_option",
+      "tests/test_platform_search.py:test_windows_params_rejects_unknown_sort_option:kind=test_function",
+      "tests/test_platform_search.py:test_windows_request_with_sort_by_validates_against_schema",
+      "tests/test_platform_search.py:test_windows_request_with_sort_by_validates_against_schema:kind=test_function",
+      "tests/test_platform_search.py:test_windows_request_with_unknown_sort_by_is_rejected_by_schema",
+      "tests/test_platform_search.py:test_windows_request_with_unknown_sort_by_is_rejected_by_schema:kind=test_function",
+      "tests/test_platform_search.py:test_windows_sort_by_schema_lists_every_sort_option",
+      "tests/test_platform_search.py:test_windows_sort_by_schema_lists_every_sort_option:kind=test_function",
+      "tests/test_platform_search.py:test_windows_sort_option_values_match_everything_sdk_sort_codes",
+      "tests/test_platform_search.py:test_windows_sort_option_values_match_everything_sdk_sort_codes:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/test_platform_search.py"
+      ],
+      "edit": [
+        "src/mcp_server_everything_search/platform_search.py"
+      ],
+      "read": [
+        "src/mcp_server_everything_search/search_interface.py",
+        "src/mcp_server_everything_search/server.py"
+      ],
+      "scope": [
+        "pyproject.toml",
+        "uv.lock"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_platform_search.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_schema_is_valid_json_schema_for_every_platform"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_windows_request_with_sort_by_validates_against_schema"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_windows_request_with_unknown_sort_by_is_rejected_by_schema"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_every_schema_property_declares_a_type"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_schema_is_self_contained_without_refs_or_defs"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_platform_params_schema_exposes_every_field_with_its_type"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_mac_search_directory_schema_allows_string_or_null"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_windows_sort_by_schema_lists_every_sort_option"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_schema_exposes_base_and_only_current_platform_params"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_schema_on_unsupported_platform_exposes_only_base"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_base_query_defaults_max_results_to_100"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_base_query_rejects_max_results_outside_1_to_1000"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_mac_params_defaults_disable_every_option"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_linux_params_defaults_ignore_case_and_existing_files_only"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_windows_params_defaults_to_name_ascending_with_matching_off"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_windows_params_accepts_integer_sort_option"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_windows_params_rejects_unknown_sort_option"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_windows_sort_option_values_match_everything_sdk_sort_codes"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_get_platform_params_returns_current_platform_params"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_get_platform_params_on_unsupported_platform_returns_none"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_build_command_darwin_maps_every_mac_option"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_build_command_darwin_without_params_is_plain_mdfind"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_build_command_linux_default_params_add_ignore_case_and_existing"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_build_command_linux_maps_regex_and_count"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_build_command_linux_without_params_is_plain_locate"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_build_command_windows_returns_empty_list"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_build_command_unsupported_platform_raises"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "src/mcp_server_everything_search/platform_search.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "BaseSearchQuery",
+              "bases": [
+                "BaseModel"
+              ]
+            },
+            {
+              "kind": "attribute",
+              "name": "query",
+              "of": "BaseSearchQuery",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "max_results",
+              "of": "BaseSearchQuery",
+              "type": "int"
+            },
+            {
+              "kind": "class",
+              "name": "MacSpecificParams",
+              "bases": [
+                "BaseModel"
+              ]
+            },
+            {
+              "kind": "attribute",
+              "name": "live_updates",
+              "of": "MacSpecificParams",
+              "type": "bool"
+            },
+            {
+              "kind": "attribute",
+              "name": "search_directory",
+              "of": "MacSpecificParams",
+              "type": "Optional[str]"
+            },
+            {
+              "kind": "attribute",
+              "name": "literal_query",
+              "of": "MacSpecificParams",
+              "type": "bool"
+            },
+            {
+              "kind": "attribute",
+              "name": "interpret_query",
+              "of": "MacSpecificParams",
+              "type": "bool"
+            },
+            {
+              "kind": "class",
+              "name": "LinuxSpecificParams",
+              "bases": [
+                "BaseModel"
+              ]
+            },
+            {
+              "kind": "attribute",
+              "name": "ignore_case",
+              "of": "LinuxSpecificParams",
+              "type": "bool"
+            },
+            {
+              "kind": "attribute",
+              "name": "regex_search",
+              "of": "LinuxSpecificParams",
+              "type": "bool"
+            },
+            {
+              "kind": "attribute",
+              "name": "existing_files",
+              "of": "LinuxSpecificParams",
+              "type": "bool"
+            },
+            {
+              "kind": "attribute",
+              "name": "count_only",
+              "of": "LinuxSpecificParams",
+              "type": "bool"
+            },
+            {
+              "kind": "enum",
+              "name": "WindowsSortOption",
+              "description": "Everything SDK sort codes 1-8 and 11-14; values are part of the SDK contract.",
+              "bases": [
+                "int",
+                "Enum"
+              ]
+            },
+            {
+              "kind": "class",
+              "name": "WindowsSpecificParams",
+              "bases": [
+                "BaseModel"
+              ]
+            },
+            {
+              "kind": "attribute",
+              "name": "match_path",
+              "of": "WindowsSpecificParams",
+              "type": "bool"
+            },
+            {
+              "kind": "attribute",
+              "name": "match_case",
+              "of": "WindowsSpecificParams",
+              "type": "bool"
+            },
+            {
+              "kind": "attribute",
+              "name": "match_whole_word",
+              "of": "WindowsSpecificParams",
+              "type": "bool"
+            },
+            {
+              "kind": "attribute",
+              "name": "match_regex",
+              "of": "WindowsSpecificParams",
+              "type": "bool"
+            },
+            {
+              "kind": "attribute",
+              "name": "sort_by",
+              "of": "WindowsSpecificParams",
+              "type": "WindowsSortOption"
+            },
+            {
+              "kind": "class",
+              "name": "UnifiedSearchQuery",
+              "bases": [
+                "BaseSearchQuery"
+              ]
+            },
+            {
+              "kind": "attribute",
+              "name": "mac_params",
+              "of": "UnifiedSearchQuery",
+              "type": "Optional[MacSpecificParams]"
+            },
+            {
+              "kind": "attribute",
+              "name": "linux_params",
+              "of": "UnifiedSearchQuery",
+              "type": "Optional[LinuxSpecificParams]"
+            },
+            {
+              "kind": "attribute",
+              "name": "windows_params",
+              "of": "UnifiedSearchQuery",
+              "type": "Optional[WindowsSpecificParams]"
+            },
+            {
+              "kind": "method",
+              "name": "get_schema_for_platform",
+              "description": "Returns a self-contained JSON Schema (no $ref/$defs) with base plus the current platform's params.",
+              "of": "UnifiedSearchQuery",
+              "returns": "Dict[str, Any]"
+            },
+            {
+              "kind": "method",
+              "name": "get_platform_params",
+              "of": "UnifiedSearchQuery",
+              "returns": "Optional[BaseModel]"
+            },
+            {
+              "kind": "function",
+              "name": "build_search_command",
+              "args": [
+                {
+                  "name": "query",
+                  "type": "UnifiedSearchQuery"
+                }
+              ],
+              "returns": "List[str]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "src/mcp_server_everything_search/server.py",
+        "src/mcp_server_everything_search/search_interface.py"
+      ],
+      "scope": [
+        {
+          "path": "pyproject.toml",
+          "reason": "Add jsonschema dev dependency and move deprecated tool.uv dev-dependencies to dependency-groups dev."
+        },
+        {
+          "path": "uv.lock",
+          "reason": "Lockfile update for the jsonschema dev dependency."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/test_platform_search.py"
+    ],
+    "validate_commands": [
+      "uv run pytest tests/test_platform_search.py -q"
+    ],
+    "acceptance_commands": []
+  }
+}

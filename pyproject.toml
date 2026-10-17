@@ -25,8 +25,9 @@ mcp-server-everything-search = "mcp_server_everything_search:main"
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
+    "jsonschema>=4.26.0",
     "pyright>=1.1.389",
     "pytest>=8.3.3",
     "ruff>=0.8.1",

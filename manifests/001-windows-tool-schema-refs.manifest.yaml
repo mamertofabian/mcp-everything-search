@@ -1,0 +1,332 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+sequence_number: 1
+goal: Make the search tool input schema self-contained so strict MCP clients accept it on Windows
+type: fix
+created: '2026-10-17T01:08:25Z'
+metadata:
+  tags:
+  - mcp
+  - json-schema
+  - windows
+  - brownfield-coverage
+  issues:
+  - '#16'
+  - '#21'
+  - '#26'
+description: |
+  UnifiedSearchQuery.get_schema_for_platform() embeds each sub-model's
+  model_json_schema() under properties.<platform>_params. Pydantic renders
+  WindowsSpecificParams.sort_by as {"$ref": "#/$defs/WindowsSortOption"} with
+  its $defs nested inside windows_params, but "#/..." pointers resolve from the
+  document root, so the pointer dangles. jsonschema/referencing raises
+  PointerToNowhere (Cherry Studio, DeepSeek HTTP 400) and Gemini CLI skips the
+  tool because sort_by has no "type" (#21). macOS and Linux schemas contain no
+  $ref today and are characterized, not changed.
+
+  Decision: inline every local "#/$defs/<Name>" reference in each sub-schema
+  and drop the nested $defs, so the returned schema contains no $ref and every
+  property carries its own "type". Chosen over PR #37 (hoist $defs to the root)
+  because hoisting leaves sort_by without a "type", which still breaks Gemini
+  CLI (#21) and other clients with limited $ref support. Chosen over PR #29
+  (replace the WindowsSortOption enum with a Literal) because it preserves the
+  public WindowsSortOption enum and works for any future nested model or enum.
+  The ref-inlining helper is private to platform_search.py. When inlining, the
+  referencing property's own keys (description, default) take precedence over
+  the referenced definition's keys; the definition's title is dropped.
+  get_schema_for_platform is a @classmethod called on the class (server.py);
+  MAID has no classmethod marker, so it is declared as a method with args: [].
+
+  Brownfield coverage: platform_search.py had no manifest or tests. Every
+  public artifact is declared and characterized. The platform is read from
+  platform.system(); tests stub it so all three platforms run on any host
+  instead of changing public signatures in this fix.
+
+  pyproject.toml/uv.lock: add jsonschema as a dev dependency (the same
+  validator family that produced the reported error) and move the deprecated
+  [tool.uv] dev-dependencies list to [dependency-groups] dev, because uv emits
+  a deprecation warning on every command.
+temptations:
+- risk: Testing only the host platform passes on Linux CI without the fix (PR #37's tests do this).
+  instead: Stub platform.system() and assert Windows schema behavior on every host.
+- risk: Removing $ref by dropping sort_by, its enum, or other fields would pass a refs-only check.
+  instead: Validate real requests with jsonschema and assert sort_by keeps type integer, the full enum, and default 1.
+- risk: Fixing only sort_by by hand-writing its schema leaves the bug for the next enum or nested model.
+  instead: Inline local $refs generically for every sub-schema returned by get_schema_for_platform.
+- risk: Changing WindowsSortOption to a Literal or str enum breaks server.py and SDK sort codes.
+  instead: Keep WindowsSortOption as an int Enum with the existing members and values.
+files:
+  create:
+  - path: tests/test_platform_search.py
+    artifacts:
+    - kind: test_function
+      name: test_schema_is_valid_json_schema_for_every_platform
+    - kind: test_function
+      name: test_windows_request_with_sort_by_validates_against_schema
+    - kind: test_function
+      name: test_windows_request_with_unknown_sort_by_is_rejected_by_schema
+    - kind: test_function
+      name: test_every_schema_property_declares_a_type
+    - kind: test_function
+      name: test_schema_is_self_contained_without_refs_or_defs
+    - kind: test_function
+      name: test_platform_params_schema_exposes_every_field_with_its_type
+    - kind: test_function
+      name: test_mac_search_directory_schema_allows_string_or_null
+    - kind: test_function
+      name: test_windows_sort_by_schema_lists_every_sort_option
+    - kind: test_function
+      name: test_schema_exposes_base_and_only_current_platform_params
+    - kind: test_function
+      name: test_schema_on_unsupported_platform_exposes_only_base
+    - kind: test_function
+      name: test_base_query_defaults_max_results_to_100
+    - kind: test_function
+      name: test_base_query_rejects_max_results_outside_1_to_1000
+    - kind: test_function
+      name: test_mac_params_defaults_disable_every_option
+    - kind: test_function
+      name: test_linux_params_defaults_ignore_case_and_existing_files_only
+    - kind: test_function
+      name: test_windows_params_defaults_to_name_ascending_with_matching_off
+    - kind: test_function
+      name: test_windows_params_accepts_integer_sort_option
+    - kind: test_function
+      name: test_windows_params_rejects_unknown_sort_option
+    - kind: test_function
+      name: test_windows_sort_option_values_match_everything_sdk_sort_codes
+    - kind: test_function
+      name: test_get_platform_params_returns_current_platform_params
+    - kind: test_function
+      name: test_get_platform_params_on_unsupported_platform_returns_none
+    - kind: test_function
+      name: test_build_command_darwin_maps_every_mac_option
+    - kind: test_function
+      name: test_build_command_darwin_without_params_is_plain_mdfind
+    - kind: test_function
+      name: test_build_command_linux_default_params_add_ignore_case_and_existing
+    - kind: test_function
+      name: test_build_command_linux_maps_regex_and_count
+    - kind: test_function
+      name: test_build_command_linux_without_params_is_plain_locate
+    - kind: test_function
+      name: test_build_command_windows_returns_empty_list
+    - kind: test_function
+      name: test_build_command_unsupported_platform_raises
+  edit:
+  - path: src/mcp_server_everything_search/platform_search.py
+    artifacts:
+    - kind: class
+      name: BaseSearchQuery
+      bases:
+      - BaseModel
+    - kind: attribute
+      name: query
+      of: BaseSearchQuery
+      type: str
+    - kind: attribute
+      name: max_results
+      of: BaseSearchQuery
+      type: int
+    - kind: class
+      name: MacSpecificParams
+      bases:
+      - BaseModel
+    - kind: attribute
+      name: live_updates
+      of: MacSpecificParams
+      type: bool
+    - kind: attribute
+      name: search_directory
+      of: MacSpecificParams
+      type: Optional[str]
+    - kind: attribute
+      name: literal_query
+      of: MacSpecificParams
+      type: bool
+    - kind: attribute
+      name: interpret_query
+      of: MacSpecificParams
+      type: bool
+    - kind: class
+      name: LinuxSpecificParams
+      bases:
+      - BaseModel
+    - kind: attribute
+      name: ignore_case
+      of: LinuxSpecificParams
+      type: bool
+    - kind: attribute
+      name: regex_search
+      of: LinuxSpecificParams
+      type: bool
+    - kind: attribute
+      name: existing_files
+      of: LinuxSpecificParams
+      type: bool
+    - kind: attribute
+      name: count_only
+      of: LinuxSpecificParams
+      type: bool
+    - kind: enum
+      name: WindowsSortOption
+      bases:
+      - int
+      - Enum
+      description: Everything SDK sort codes 1-8 and 11-14; values are part of the SDK contract.
+    - kind: class
+      name: WindowsSpecificParams
+      bases:
+      - BaseModel
+    - kind: attribute
+      name: match_path
+      of: WindowsSpecificParams
+      type: bool
+    - kind: attribute
+      name: match_case
+      of: WindowsSpecificParams
+      type: bool
+    - kind: attribute
+      name: match_whole_word
+      of: WindowsSpecificParams
+      type: bool
+    - kind: attribute
+      name: match_regex
+      of: WindowsSpecificParams
+      type: bool
+    - kind: attribute
+      name: sort_by
+      of: WindowsSpecificParams
+      type: WindowsSortOption
+    - kind: class
+      name: UnifiedSearchQuery
+      bases:
+      - BaseSearchQuery
+    - kind: attribute
+      name: mac_params
+      of: UnifiedSearchQuery
+      type: Optional[MacSpecificParams]
+    - kind: attribute
+      name: linux_params
+      of: UnifiedSearchQuery
+      type: Optional[LinuxSpecificParams]
+    - kind: attribute
+      name: windows_params
+      of: UnifiedSearchQuery
+      type: Optional[WindowsSpecificParams]
+    - kind: method
+      name: get_schema_for_platform
+      of: UnifiedSearchQuery
+      args: []
+      returns: Dict[str, Any]
+      description: Returns a self-contained JSON Schema (no $ref/$defs) with base plus the current platform's params.
+    - kind: method
+      name: get_platform_params
+      of: UnifiedSearchQuery
+      args: []
+      returns: Optional[BaseModel]
+    - kind: function
+      name: build_search_command
+      args:
+      - name: query
+        type: UnifiedSearchQuery
+      returns: List[str]
+  scope:
+  - path: pyproject.toml
+    reason: Add jsonschema dev dependency and move deprecated tool.uv dev-dependencies to dependency-groups dev.
+  - path: uv.lock
+    reason: Lockfile update for the jsonschema dev dependency.
+  read:
+  - src/mcp_server_everything_search/server.py
+  - src/mcp_server_everything_search/search_interface.py
+validate:
+- - uv
+  - run
+  - pytest
+  - tests/test_platform_search.py
+  - -q
+outcome:
+  status: completed
+  completed_at: '2026-10-17T09:45:00+08:00'
+  summary: Windows search tool inputSchema is self-contained; sort_by is an inline integer enum with no dangling
+    $ref.
+  rationale: 'Inlined local $defs references per sub-schema instead of hoisting (PR #37) so every property carries
+    a type for Gemini CLI (#21) as well as strict validators (#16, #26). WindowsSortOption int Enum and server.py
+    consumption unchanged. platform_search.py now has full brownfield characterization coverage.'
+  agent:
+    model: claude-opus-5-5
+    client: claude-code
+    skills:
+    - maid-planner
+    - maid-implementer
+    - maid-implementation-review
+  lessons:
+  - lesson_type: test-pattern
+    summary: 'Platform-dependent schema bugs need platform.system() stubbed in tests; host-only tests (as in PR
+      #37) pass on Linux CI without the fix.'
+    paths:
+    - tests/test_platform_search.py
+    tags:
+    - platform-stub
+    - json-schema
+  - lesson_type: validation-gap
+    summary: Validate generated MCP tool schemas with real jsonschema requests, not only check_schema, which does
+      not resolve $ref and passed on the broken schema.
+    paths:
+    - tests/test_platform_search.py
+    tags:
+    - json-schema
+  - lesson_type: process
+    summary: After implementation exists, plan revise for changed tests must use --stash-implementation; a plain
+      revise recorded green as red evidence (E705) and had to be recaptured.
+    paths:
+    - .maid/plan-locks/001-windows-tool-schema-refs.lock.json
+    tags:
+    - plan-lock
+    - red-evidence
+  review_notes:
+  - source: maid-plan-reviewer
+    severity: ready
+    summary: Approved after revision adding exact per-platform property/type pins, no-$ref/$defs check, and description
+      precedence assertion.
+  - source: maid-implementation-reviewer
+    severity: ready
+    summary: Ready to merge; Linux/Darwin schemas byte-identical to baseline, helper generic for nested/Optional/List/enum
+      refs, no input mutation, loud ValueError on recursive or missing defs. Advisories (Tuple annotation, stale
+      comment) applied.
+  validation:
+  - command:
+    - uv
+    - run
+    - pytest
+    - -q
+    status: passed
+    summary: 40 passed; red evidence (plan lock revision 5) 6 failed against baseline with PointerToNowhere / missing
+      type.
+  - command:
+    - scripts/maid
+    - verify
+    - --profile
+    - handoff
+    - --summary
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --since
+    - 9d10654
+    status: passed
+    summary: 9/9 gates passed. Repo-wide file tracking fails only on untouched brownfield files without manifests.
+  - command:
+    - uv
+    - run
+    - pyright
+    - src/mcp_server_everything_search/platform_search.py
+    - tests
+    status: passed
+    summary: 0 errors (9 pre-existing build_search_command errors fixed by isinstance narrowing); ruff check/format
+      clean on touched files.
