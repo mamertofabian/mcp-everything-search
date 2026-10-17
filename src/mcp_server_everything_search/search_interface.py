@@ -176,14 +176,22 @@ class LinuxSearchProvider(SearchProvider):
         """Check if locate/plocate is installed."""
         self._run = run_command
 
-        # Check for plocate first (newer version)
+        # Check for plocate first (newer version). If neither is installed the
+        # provider still constructs so the server can start and list its tools;
+        # searches then fail with installation instructions.
+        self.locate_cmd: Optional[str] = None
+        self.locate_type: Optional[str] = None
         if self._run(["which", "plocate"]).returncode == 0:
             self.locate_cmd = "plocate"
             self.locate_type = "plocate"
         elif self._run(["which", "locate"]).returncode == 0:
             self.locate_cmd = "locate"
             self.locate_type = "mlocate"
-        else:
+
+    def _base_command(
+        self, ignore_case: bool, regex_search: bool, existing_files: bool
+    ) -> List[str]:
+        if self.locate_cmd is None:
             raise RuntimeError(
                 "Neither 'locate' nor 'plocate' is installed. Please install one:\n"
                 + _LOCATE_INSTALL_HINT
@@ -191,10 +199,6 @@ class LinuxSearchProvider(SearchProvider):
                 "For plocate: sudo updatedb\n"
                 "For mlocate: sudo /etc/cron.daily/mlocate"
             )
-
-    def _base_command(
-        self, ignore_case: bool, regex_search: bool, existing_files: bool
-    ) -> List[str]:
         cmd = [self.locate_cmd]
         if ignore_case:
             cmd.append("-i")

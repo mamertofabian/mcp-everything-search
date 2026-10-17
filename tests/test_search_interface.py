@@ -273,13 +273,37 @@ def test_linux_falls_back_to_locate():
     assert (provider.locate_cmd, provider.locate_type) == ("locate", "mlocate")
 
 
-def test_linux_without_any_locate_raises_install_hint():
-    runner = FakeRunner(
+def _no_locate() -> FakeRunner:
+    return FakeRunner(
         {"which plocate": _done(returncode=1), "which locate": _done(returncode=1)}
     )
 
+
+def test_linux_without_any_locate_still_constructs():
+    # The server must start (and list its tools) even where locate is missing
+    provider = _linux(_no_locate())
+
+    assert provider.locate_cmd is None
+
+
+def test_linux_search_without_any_locate_raises_install_hint():
+    runner = _no_locate()
+    provider = _linux(runner)
+
     with pytest.raises(RuntimeError, match="sudo apt-get install plocate"):
-        _linux(runner)
+        provider.search_files("x")
+
+    assert [c[0] for c in runner.commands] == ["which", "which"]
+
+
+def test_linux_count_without_any_locate_raises_install_hint():
+    runner = _no_locate()
+    provider = _linux(runner)
+
+    with pytest.raises(RuntimeError, match="sudo apt-get install plocate"):
+        provider.count_files("x")
+
+    assert [c[0] for c in runner.commands] == ["which", "which"]
 
 
 def test_linux_default_search_ignores_case_existing_only_and_limits():

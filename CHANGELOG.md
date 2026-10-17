@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.3.3 - unreleased
+
+### Fixed
+
+- On Linux, the server now starts and lists its tool even when `locate`/`plocate` is not installed; a search then fails with the installation instructions. Previously it exited at startup, which broke directory and inspector checks that run the server in a bare container (for example Glama's build tests).
+
 ## 0.3.2 - 2026-10-17
 
 ### Added
