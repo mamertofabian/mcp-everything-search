@@ -5,10 +5,10 @@
     "tests/test_ci_workflow.py": "sha256-pyast:v2:d1f9907d109a0a5973449817cbff6d0ffb9139841ba191c5892185b0d97c683c",
     "tests/test_server.py": "sha256-pyast:v2:29917a3a855f2d823dc0cd8e6b284b1537f9d22346cfaf20f4809a4bc044f26f",
     "tests/test_package_metadata.py": "sha256-pyast:v2:0b36a13ad3a18e54e81879e114e96ac81a7a7ec3170dfc04aeb14e5423c65749",
-    "tests/test_search_interface.py": "sha256-pyast:v2:bbfaef1cf637fa32c1bd142bc4a5fdcb845cca21d2716ff2d4173d8baee51a37"
+    "tests/test_search_interface.py": "sha256-pyast:v2:c1618dbdcfc8dd77b561ae78b1f7fdc9235d43c87c0986703b1fca94930907dc"
   },
   "created_at": "2026-10-17T04:42:23.112988+00:00",
-  "revision": 3,
+  "revision": 4,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:5d8dee9d1dd44ce91d7338bb47ffbaf49d536b250d681c615bc82293d155895c",
@@ -40,6 +40,26 @@
       },
       "revised_at": "2026-10-17T04:43:53.685980+00:00",
       "reason": "Implementation review: tool-name validation used re.match with $, which accepts a trailing newline; added 'search\\n' rejection case. Sibling dirty file: 003 lock refresh for the same tests/test_server.py change.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:327f3214e807a101a7ed25da9c1f60f0d3dc1120da6e90a6c6896b37b2a257b2",
+      "prior_test_hashes": {
+        "tests/test_ci_workflow.py": "sha256-pyast:v2:d1f9907d109a0a5973449817cbff6d0ffb9139841ba191c5892185b0d97c683c",
+        "tests/test_server.py": "sha256-pyast:v2:29917a3a855f2d823dc0cd8e6b284b1537f9d22346cfaf20f4809a4bc044f26f",
+        "tests/test_package_metadata.py": "sha256-pyast:v2:0b36a13ad3a18e54e81879e114e96ac81a7a7ec3170dfc04aeb14e5423c65749",
+        "tests/test_search_interface.py": "sha256-pyast:v2:bbfaef1cf637fa32c1bd142bc4a5fdcb845cca21d2716ff2d4173d8baee51a37"
+      },
+      "revised_at": "2026-10-17T04:49:03.376793+00:00",
+      "reason": "Test portability fix after CI run 39003893578: test_mac_search_directory_expands_home compared a Windows-expanded '~/sub' (mixed separators) as a string; now compares as Path. Behavior and contract unchanged; the test still fails without ~ expansion (checked).",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

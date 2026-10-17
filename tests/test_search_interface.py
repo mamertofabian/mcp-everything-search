@@ -170,9 +170,11 @@ def test_mac_search_directory_expands_home(tmp_path: Path, monkeypatch):
 
     MacSearchProvider(run_command=runner).search_files("x", search_directory="~/sub")
 
-    assert runner.commands == [
-        ["mdfind", "-onlyin", str(tmp_path / "sub"), "-name", "x"]
-    ]
+    [cmd] = runner.commands
+    # Compare as paths: expanduser keeps "/" on Windows ("C:\\...\\tmp/sub")
+    assert cmd[:2] == ["mdfind", "-onlyin"]
+    assert Path(cmd[2]) == tmp_path / "sub"
+    assert cmd[3:] == ["-name", "x"]
 
 
 def test_mac_missing_search_directory_is_rejected(tmp_path: Path):
