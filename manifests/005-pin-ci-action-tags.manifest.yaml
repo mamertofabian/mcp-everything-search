@@ -1,0 +1,49 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+sequence_number: 5
+goal: Pin CI actions to exact release tags so the workflow resolves on GitHub
+type: fix
+created: '2026-10-17T02:38:54Z'
+metadata:
+  tags:
+  - ci
+description: |
+  The first CI run after 004 (run 38995581453) failed in all 7 jobs at setup:
+  "Unable to resolve action astral-sh/setup-uv@v10, unable to find version v10".
+  setup-uv publishes exact release tags only (v10.3.0 exists, v10 does not;
+  checked via the GitHub refs API). actions/checkout@v7 resolved, but is pinned
+  the same way for consistency (v7.0.1 points to the same commit as v7).
+
+  004 is merged to main, so this is a follow-on fix manifest rather than an
+  in-place revision. A separate test file is used so 004's locked
+  tests/test_ci_workflow.py is not modified.
+
+  Out of scope: commit-SHA pinning (the test would need to evolve to accept
+  it), and the publish/claude workflows, whose actions publish moving major
+  tags that resolve.
+temptations:
+- risk: "Pinning only setup-uv and leaving other loose refs that may also fail to resolve."
+  instead: "Require every uses: ref in ci.yml to be an exact vX.Y.Z tag."
+files:
+  create:
+  - path: tests/test_ci_action_pins.py
+    artifacts:
+    - kind: test_function
+      name: test_every_ci_action_is_pinned_to_an_exact_release_tag
+  scope:
+  - path: .github/workflows/ci.yml
+    reason: Change astral-sh/setup-uv@v10 to @v10.3.0 and actions/checkout@v7 to @v7.0.1.
+  read:
+  - manifests/004-ci-workflow.manifest.yaml
+  - tests/test_ci_workflow.py
+validate:
+- - uv
+  - run
+  - pytest
+  - tests/test_ci_action_pins.py
+  - tests/test_ci_workflow.py
+  - -q

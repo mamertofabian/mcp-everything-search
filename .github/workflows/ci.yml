@@ -23,8 +23,8 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ["3.10", "3.13"]
     steps:
-      - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.3.0
         with:
           python-version: ${{ matrix.python-version }}
       - run: uv sync --locked
@@ -45,8 +45,8 @@ jobs:
         tests
       MAID_RUNNER_SPEC: maid-runner[all]==2.28.0
     steps:
-      - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.3.0
       - run: uv sync --locked
       - run: uv run ruff check $MAID_COVERED_PATHS
       - run: uv run ruff format --check $MAID_COVERED_PATHS

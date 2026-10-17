@@ -1,0 +1,103 @@
+{
+  "manifest_path": "manifests/005-pin-ci-action-tags.manifest.yaml",
+  "manifest_hash": "sha256-contract:86eb6b794240e9fc3509efba1b1c78c3de63224f6df10d975d845d73c57a94bf",
+  "test_hashes": {
+    "tests/test_ci_workflow.py": "sha256-pyast:v2:d1f9907d109a0a5973449817cbff6d0ffb9139841ba191c5892185b0d97c683c",
+    "tests/test_ci_action_pins.py": "sha256-pyast:v2:4c63aae6ce01cf3c845076269fd50944e071e379407cb891f4cadd0eac256d69"
+  },
+  "created_at": "2026-10-17T02:38:53.915790+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:59075ff70b501e244625350567ca196feca64e70b75cfae89f315e17736aed0a",
+      "prior_test_hashes": {
+        "tests/test_ci_workflow.py": "sha256-pyast:v2:d1f9907d109a0a5973449817cbff6d0ffb9139841ba191c5892185b0d97c683c",
+        "tests/test_ci_action_pins.py": "sha256-pyast:v2:4c63aae6ce01cf3c845076269fd50944e071e379407cb891f4cadd0eac256d69"
+      },
+      "revised_at": "2026-10-17T02:38:54.839786+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/005-pin-ci-action-tags.manifest.yaml -> manifests/005-pin-ci-action-tags.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-17T02:38:54.213692+00:00",
+    "commands": [
+      {
+        "command": "uv run pytest tests/test_ci_action_pins.py tests/test_ci_workflow.py -q",
+        "exit_code": 1,
+        "output_tail": "\n    def test_every_ci_action_is_pinned_to_an_exact_release_tag():\n        # Arrange\n        refs = _action_refs()\n    \n        # Act\n        loose = [ref for ref in refs if not EXACT_TAG.match(ref)]\n    \n        # Assert\n        assert refs != []\n>       assert loose == []\nE       AssertionError: assert ['actions/che...setup-uv@v10'] == []\nE         \nE         Left contains 4 more items, first extra item: 'actions/checkout@v7'\nE         Use -v to get more diff\n\ntests/test_ci_action_pins.py:37: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_ci_action_pins.py::test_every_ci_action_is_pinned_to_an_exact_release_tag\n1 failed, 11 passed in 0.10s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": {
+    "model": "claude-opus-5-5",
+    "client": "claude-code",
+    "skills": [
+      "maid-planner"
+    ],
+    "source": "flags"
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/test_ci_action_pins.py:test_every_ci_action_is_pinned_to_an_exact_release_tag",
+      "tests/test_ci_action_pins.py:test_every_ci_action_is_pinned_to_an_exact_release_tag:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/test_ci_action_pins.py"
+      ],
+      "edit": [],
+      "read": [
+        "manifests/004-ci-workflow.manifest.yaml",
+        "tests/test_ci_workflow.py"
+      ],
+      "scope": [
+        ".github/workflows/ci.yml"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_ci_action_pins.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_every_ci_action_is_pinned_to_an_exact_release_tag"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/004-ci-workflow.manifest.yaml",
+        "tests/test_ci_workflow.py"
+      ],
+      "scope": [
+        {
+          "path": ".github/workflows/ci.yml",
+          "reason": "Change astral-sh/setup-uv@v10 to @v10.3.0 and actions/checkout@v7 to @v7.0.1."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/test_ci_action_pins.py",
+      "tests/test_ci_workflow.py"
+    ],
+    "validate_commands": [
+      "uv run pytest tests/test_ci_action_pins.py tests/test_ci_workflow.py -q"
+    ],
+    "acceptance_commands": []
+  }
+}
