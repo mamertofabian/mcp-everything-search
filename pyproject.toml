@@ -31,5 +31,6 @@ dev = [
     "packaging>=24.2",
     "pyright>=1.1.389",
     "pytest>=8.3.3",
+    "pyyaml>=6.0.3",
     "ruff>=0.8.1",
 ]

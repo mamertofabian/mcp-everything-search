@@ -1,0 +1,168 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+sequence_number: 4
+goal: Add a CI workflow that runs tests on every OS and quality checks on MAID-covered files
+type: feature
+created: '2026-10-17T02:33:05Z'
+metadata:
+  tags:
+  - ci
+  - tooling
+description: |
+  The repository had no test or lint CI; only the Claude bot workflows and the
+  publish workflow (which builds on every push and publishes to PyPI on any tag).
+
+  Add .github/workflows/ci.yml, triggered on pushes to main and on pull
+  requests, with two jobs:
+  - test: uv sync --locked and uv run pytest -q on ubuntu, windows and macos
+    (Python 3.10 and 3.13). Windows matters most for this server.
+  - quality: ruff check, ruff format --check and pyright on the paths in the
+    MAID_COVERED_PATHS job env, plus scripts/maid validate.
+
+  Decision: quality checks run only on MAID-covered source files plus tests.
+  everything_sdk.py and search_interface.py have pre-existing ruff/pyright
+  errors and no manifest yet; fixing them requires full brownfield coverage
+  first. test_ci_quality_checks_cover_every_manifest_covered_source_file reads
+  the active manifests, so any newly covered src file must be added to
+  MAID_COVERED_PATHS or the test fails.
+
+  pyyaml is added as a dev dependency to parse the workflow and manifests in
+  tests. It was added before plan approval because the red phase imports yaml;
+  both pyproject.toml and uv.lock are in files.scope.
+
+  Action versions: actions/checkout v7 and astral-sh/setup-uv v10 (latest
+  release tags v7.0.1 and v10.3.0, confirmed via the GitHub API on
+  2026-10-17). Permissions are contents: read; concurrency cancels superseded
+  runs per ref. MAID_RUNNER_SPEC pins maid-runner[all]==2.28.0 so the MAID gate
+  only changes with a repo change. The quality job runs on ubuntu with bash so
+  $MAID_COVERED_PATHS word-splits.
+
+  Follow-up (out of scope): publish-to-test-pypi.yml publishes to PyPI on any
+  tag without depending on tests; CI does not run on tags, so releases have no
+  test gate yet.
+temptations:
+- risk: "Running ruff/pyright repo-wide and adding continue-on-error or ignores to make it pass."
+  instead: "Check MAID-covered paths only, with the manifest-driven coverage test enforcing the list."
+- risk: "Hard-coding the covered file list in the test so it never grows."
+  instead: "Derive covered sources from manifests/*.manifest.yaml files.create/edit/scope."
+files:
+  create:
+  - path: tests/test_ci_workflow.py
+    artifacts:
+    - kind: test_function
+      name: test_ci_runs_on_pushes_to_main_and_pull_requests
+    - kind: test_function
+      name: test_ci_is_read_only_and_cancels_superseded_runs
+    - kind: test_function
+      name: test_ci_runs_tests_from_lockfile_on_windows_macos_and_linux
+    - kind: test_function
+      name: test_ci_tests_the_lowest_and_a_current_python
+    - kind: test_function
+      name: test_ci_jobs_check_out_code_and_install_uv
+    - kind: test_function
+      name: test_ci_jobs_never_mask_or_skip_failures
+    - kind: test_function
+      name: test_ci_quality_checks_cover_every_manifest_covered_source_file
+    - kind: test_function
+      name: test_ci_quality_job_runs_lint_format_types_and_maid_validation_in_bash
+    - kind: test_function
+      name: test_ci_pins_the_maid_runner_version
+  scope:
+  - path: .github/workflows/ci.yml
+    reason: New CI workflow (test matrix and quality job).
+  - path: pyproject.toml
+    reason: Add pyyaml to the dev dependency group.
+  - path: uv.lock
+    reason: Lock pyyaml.
+  read:
+  - .github/workflows/publish-to-test-pypi.yml
+  - manifests/001-windows-tool-schema-refs.manifest.yaml
+  - manifests/002-port-server-to-mcp-2.manifest.yaml
+  - manifests/003-raw-syntax-guide-strings.manifest.yaml
+validate:
+- - uv
+  - run
+  - pytest
+  - tests/test_ci_workflow.py
+  - -q
+- - uv
+  - run
+  - pyright
+  - tests/test_ci_workflow.py
+- - uv
+  - run
+  - ruff
+  - check
+  - tests/test_ci_workflow.py
+- - uv
+  - run
+  - ruff
+  - format
+  - --check
+  - tests/test_ci_workflow.py
+outcome:
+  status: completed
+  completed_at: '2026-10-17T11:30:00+08:00'
+  summary: CI runs pytest on ubuntu/windows/macos with Python 3.10 and 3.13, and ruff/pyright/maid validate on MAID-covered
+    paths.
+  rationale: Quality checks are limited to MAID-covered files because everything_sdk.py and search_interface.py
+    have pre-existing errors and no coverage; a manifest-derived test forces new coverage into the CI path list.
+  agent:
+    model: claude-opus-5-5
+    client: claude-code
+    skills:
+    - maid-planner
+    - maid-implementer
+    - maid-implementation-review
+  lessons:
+  - lesson_type: test-pattern
+    summary: 'Test CI workflows structurally: runs-on uses the matrix, setup receives the matrix Python, install
+      precedes checks, and no continue-on-error, if, || or set +e can mask failures.'
+    paths:
+    - tests/test_ci_workflow.py
+    tags:
+    - ci
+  review_notes:
+  - source: maid-plan-reviewer
+    severity: ready
+    summary: Approved after revision adding runs-on, Python matrix, checkout/setup order, failure-masking, bash
+      shell, permissions/concurrency and runner-pin assertions; test-file pyright blocker fixed.
+  - source: maid-implementation-reviewer
+    severity: ready
+    summary: 'Ready to merge; shallow-clone maid validate passes with the pinned runner. Follow-ups: cancel-in-progress
+      also cancels main pushes; manifest scan includes superseded manifests; pin test checks prefix only. GitHub-hosted
+      Windows/macOS jobs not yet run.'
+  validation:
+  - command:
+    - uv
+    - run
+    - pytest
+    - -q
+    status: passed
+    summary: 91 passed; red evidence exit 1 (ci.yml missing).
+  - command:
+    - scripts/maid
+    - verify
+    - --profile
+    - handoff
+    - --summary
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --since
+    - 0d6f27d
+    status: passed
+    summary: 9/9 gates passed.
+  - command:
+    - uvx
+    - --from
+    - actionlint-py
+    - actionlint
+    - .github/workflows/ci.yml
+    status: passed
+    summary: No errors; SC2086 info only on intentional word splitting of MAID_COVERED_PATHS.
