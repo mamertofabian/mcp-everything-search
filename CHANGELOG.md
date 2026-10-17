@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented here.
 
-## 0.3.0 - unreleased
+## 0.3.0 - 2026-10-17
 
 This release restores a working install and fixes the Windows `sort_by` schema. It requires mcp 2.x.
 
