@@ -72,6 +72,33 @@ def test_run_command_captures_text_output_and_exit_code():
     assert (result.returncode, result.stdout.strip()) == (3, "hi")
 
 
+def test_default_command_timeout_is_30_seconds():
+    from mcp_server_everything_search.search_interface import SEARCH_TIMEOUT_SECONDS
+
+    assert SEARCH_TIMEOUT_SECONDS == 30.0
+
+
+def test_run_command_uses_default_timeout_when_none_given():
+    import inspect
+
+    from mcp_server_everything_search.search_interface import (
+        SEARCH_TIMEOUT_SECONDS,
+        run_command,
+    )
+
+    assert (
+        inspect.signature(run_command).parameters["timeout"].default
+        == SEARCH_TIMEOUT_SECONDS
+    )
+
+
+def test_run_command_times_out_with_clear_error():
+    from mcp_server_everything_search.search_interface import run_command
+
+    with pytest.raises(RuntimeError, match="timed out after 0.2 seconds"):
+        run_command([sys.executable, "-c", "import time; time.sleep(5)"], timeout=0.2)
+
+
 # --- SearchProvider factory ---
 
 
@@ -90,7 +117,9 @@ def test_get_provider_returns_platform_provider(monkeypatch, system, expected):
         LinuxSearchProvider, "__init__", lambda self, run_command=None: None
     )
     monkeypatch.setattr(
-        WindowsSearchProvider, "__init__", lambda self, everything_sdk=None: None
+        WindowsSearchProvider,
+        "__init__",
+        lambda self, everything_sdk=None, dll_path=None: None,
     )
 
     assert isinstance(SearchProvider.get_provider(), expected)
@@ -123,16 +152,58 @@ def test_mac_default_search_is_filename_search_limited_to_max_results():
     assert [r.path for r in results] == ["/a/one.txt", "/a/two.txt"]
 
 
-def test_mac_search_directory_scopes_search_issue_25():
+def test_mac_search_directory_scopes_search_issue_25(tmp_path: Path):
     runner = FakeRunner()
 
     MacSearchProvider(run_command=runner).search_files(
-        "ENABLE", search_directory="/Users/me/repo"
+        "ENABLE", search_directory=str(tmp_path)
     )
 
+    assert runner.commands == [["mdfind", "-onlyin", str(tmp_path), "-name", "ENABLE"]]
+
+
+def test_mac_search_directory_expands_home(tmp_path: Path, monkeypatch):
+    (tmp_path / "sub").mkdir()
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
+    runner = FakeRunner()
+
+    MacSearchProvider(run_command=runner).search_files("x", search_directory="~/sub")
+
     assert runner.commands == [
-        ["mdfind", "-onlyin", "/Users/me/repo", "-name", "ENABLE"]
+        ["mdfind", "-onlyin", str(tmp_path / "sub"), "-name", "x"]
     ]
+
+
+def test_mac_missing_search_directory_is_rejected(tmp_path: Path):
+    runner = FakeRunner()
+
+    with pytest.raises(ValueError, match="does not exist"):
+        MacSearchProvider(run_command=runner).search_files(
+            "x", search_directory=str(tmp_path / "missing")
+        )
+
+    assert runner.commands == []
+
+
+@pytest.mark.parametrize("option", ["literal_query", "interpret_query"])
+def test_mac_raw_query_starting_with_dash_is_rejected(option):
+    # A leading "-" would be parsed as an mdfind option (e.g. "-live" never exits)
+    runner = FakeRunner()
+    options: Dict[str, Any] = {option: True}
+
+    with pytest.raises(ValueError, match="must not start with '-'"):
+        MacSearchProvider(run_command=runner).search_files("-live", **options)
+
+    assert runner.commands == []
+
+
+def test_mac_filename_query_starting_with_dash_is_passed_as_name_value():
+    runner = FakeRunner()
+
+    MacSearchProvider(run_command=runner).search_files("-draft")
+
+    assert runner.commands == [["mdfind", "-name", "-draft"]]
 
 
 @pytest.mark.parametrize(
@@ -151,15 +222,15 @@ def test_mac_literal_or_interpret_passes_raw_query(option, flag):
     assert runner.commands == [["mdfind", flag, 'kMDItemKind == "PDF"']]
 
 
-def test_mac_scoped_literal_query_orders_directory_then_flags():
+def test_mac_scoped_literal_query_orders_directory_then_flags(tmp_path: Path):
     runner = FakeRunner()
 
     MacSearchProvider(run_command=runner).search_files(
-        "q", search_directory="/d", literal_query=True, interpret_query=True
+        "q", search_directory=str(tmp_path), literal_query=True, interpret_query=True
     )
 
     assert runner.commands == [
-        ["mdfind", "-onlyin", "/d", "-literal", "-interpret", "q"]
+        ["mdfind", "-onlyin", str(tmp_path), "-literal", "-interpret", "q"]
     ]
 
 
@@ -218,7 +289,7 @@ def test_linux_default_search_ignores_case_existing_only_and_limits():
     results = provider.search_files("bashrc", max_results=2)
 
     # Assert
-    assert runner.commands[-1] == ["plocate", "-i", "-e", "-l", "2", "bashrc"]
+    assert runner.commands[-1] == ["plocate", "-i", "-e", "-l", "2", "--", "bashrc"]
     assert [r.path for r in results] == ["/etc/a", "/etc/b"]
 
 
@@ -234,7 +305,15 @@ def test_linux_params_map_to_locate_flags_issue_30():
         existing_files=False,
     )
 
-    assert runner.commands[-1] == ["plocate", "-r", "-l", "5", "^/etc"]
+    assert runner.commands[-1] == ["plocate", "-r", "-l", "5", "--", "^/etc"]
+
+
+def test_linux_query_starting_with_dash_is_searched_not_parsed_as_option():
+    runner = FakeRunner()
+
+    _linux(runner).search_files("--database=/etc/shadow")
+
+    assert runner.commands[-1][-2:] == ["--", "--database=/etc/shadow"]
 
 
 def test_linux_regex_uses_long_option_for_mlocate():
@@ -245,7 +324,16 @@ def test_linux_regex_uses_long_option_for_mlocate():
 
     provider.search_files("x", regex_search=True)
 
-    assert runner.commands[-1] == ["locate", "-i", "--regex", "-e", "-l", "100", "x"]
+    assert runner.commands[-1] == [
+        "locate",
+        "-i",
+        "--regex",
+        "-e",
+        "-l",
+        "100",
+        "--",
+        "x",
+    ]
 
 
 def test_linux_count_files_returns_match_count():
@@ -258,7 +346,7 @@ def test_linux_count_files_returns_match_count():
 
     # Assert
     assert count == 70
-    assert runner.commands[-1] == ["plocate", "-i", "-e", "-c", "bashrc"]
+    assert runner.commands[-1] == ["plocate", "-i", "-e", "-c", "--", "bashrc"]
 
 
 def test_linux_count_files_with_unparseable_output_raises():
@@ -377,3 +465,60 @@ def test_windows_without_sort_by_uses_everything_name_ascending_default():
     WindowsSearchProvider(everything_sdk=sdk).search_files("x")
 
     assert sdk.calls[0]["sort_by"] == 1
+
+
+@pytest.mark.parametrize("dll_path", [None, ""])
+def test_windows_provider_requires_a_non_empty_sdk_path(dll_path):
+    with pytest.raises(RuntimeError, match="EVERYTHING_SDK_PATH is not set"):
+        WindowsSearchProvider(dll_path=dll_path)
+
+
+def test_windows_provider_rejects_missing_dll_file(tmp_path: Path):
+    with pytest.raises(RuntimeError, match="does not exist"):
+        WindowsSearchProvider(dll_path=str(tmp_path / "Everything64.dll"))
+
+
+def test_windows_provider_rejects_a_directory_as_dll_path(tmp_path: Path):
+    with pytest.raises(RuntimeError, match="does not exist"):
+        WindowsSearchProvider(dll_path=str(tmp_path))
+
+
+def test_windows_provider_loads_sdk_from_existing_dll_path(tmp_path: Path, monkeypatch):
+    # Arrange: replace the SDK class so no real DLL is loaded
+    from mcp_server_everything_search import everything_sdk
+
+    dll = tmp_path / "Everything64.dll"
+    dll.write_bytes(b"MZ")
+    loaded: List[str] = []
+
+    class RecordingSDK(FakeEverythingSDK):
+        def __init__(self, dll_path: str) -> None:
+            super().__init__()
+            loaded.append(dll_path)
+
+    monkeypatch.setattr(everything_sdk, "EverythingSDK", RecordingSDK)
+
+    # Act
+    provider = WindowsSearchProvider(dll_path=str(dll))
+
+    # Assert
+    assert loaded == [str(dll)]
+    assert isinstance(provider.everything_sdk, RecordingSDK)
+
+
+def test_get_provider_passes_everything_sdk_path_to_windows_provider(monkeypatch):
+    # Arrange: the factory is the composition root that reads the environment
+    received: Dict[str, Any] = {}
+
+    def capture(self, everything_sdk=None, dll_path=None):
+        received["dll_path"] = dll_path
+
+    monkeypatch.setattr(platform, "system", lambda: "Windows")
+    monkeypatch.setenv("EVERYTHING_SDK_PATH", r"C:\sdk\Everything64.dll")
+    monkeypatch.setattr(WindowsSearchProvider, "__init__", capture)
+
+    # Act
+    SearchProvider.get_provider()
+
+    # Assert
+    assert received == {"dll_path": r"C:\sdk\Everything64.dll"}

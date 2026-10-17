@@ -1,0 +1,1307 @@
+{
+  "manifest_path": "manifests/009-harden-commands-and-tool-name.manifest.yaml",
+  "manifest_hash": "sha256-contract:327f3214e807a101a7ed25da9c1f60f0d3dc1120da6e90a6c6896b37b2a257b2",
+  "test_hashes": {
+    "tests/test_ci_workflow.py": "sha256-pyast:v2:d1f9907d109a0a5973449817cbff6d0ffb9139841ba191c5892185b0d97c683c",
+    "tests/test_server.py": "sha256-pyast:v2:29917a3a855f2d823dc0cd8e6b284b1537f9d22346cfaf20f4809a4bc044f26f",
+    "tests/test_package_metadata.py": "sha256-pyast:v2:0b36a13ad3a18e54e81879e114e96ac81a7a7ec3170dfc04aeb14e5423c65749",
+    "tests/test_search_interface.py": "sha256-pyast:v2:bbfaef1cf637fa32c1bd142bc4a5fdcb845cca21d2716ff2d4173d8baee51a37"
+  },
+  "created_at": "2026-10-17T04:42:23.112988+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:5d8dee9d1dd44ce91d7338bb47ffbaf49d536b250d681c615bc82293d155895c",
+      "prior_test_hashes": {
+        "tests/test_ci_workflow.py": "sha256-pyast:v2:d1f9907d109a0a5973449817cbff6d0ffb9139841ba191c5892185b0d97c683c",
+        "tests/test_server.py": "sha256-pyast:v2:25669b7202f0939a3d83f24563421cebc1f2597f521743b733263b46845f96e5",
+        "tests/test_package_metadata.py": "sha256-pyast:v2:0b36a13ad3a18e54e81879e114e96ac81a7a7ec3170dfc04aeb14e5423c65749",
+        "tests/test_search_interface.py": "sha256-pyast:v2:bbfaef1cf637fa32c1bd142bc4a5fdcb845cca21d2716ff2d4173d8baee51a37"
+      },
+      "revised_at": "2026-10-17T04:42:24.588602+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/009-harden-commands-and-tool-name.manifest.yaml -> manifests/009-harden-commands-and-tool-name.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:327f3214e807a101a7ed25da9c1f60f0d3dc1120da6e90a6c6896b37b2a257b2",
+      "prior_test_hashes": {
+        "tests/test_ci_workflow.py": "sha256-pyast:v2:d1f9907d109a0a5973449817cbff6d0ffb9139841ba191c5892185b0d97c683c",
+        "tests/test_server.py": "sha256-pyast:v2:25669b7202f0939a3d83f24563421cebc1f2597f521743b733263b46845f96e5",
+        "tests/test_package_metadata.py": "sha256-pyast:v2:0b36a13ad3a18e54e81879e114e96ac81a7a7ec3170dfc04aeb14e5423c65749",
+        "tests/test_search_interface.py": "sha256-pyast:v2:bbfaef1cf637fa32c1bd142bc4a5fdcb845cca21d2716ff2d4173d8baee51a37"
+      },
+      "revised_at": "2026-10-17T04:43:53.685980+00:00",
+      "reason": "Implementation review: tool-name validation used re.match with $, which accepts a trailing newline; added 'search\\n' rejection case. Sibling dirty file: 003 lock refresh for the same tests/test_server.py change.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-17T04:43:54.722713+00:00",
+    "commands": [
+      {
+        "command": "uv run pytest tests/test_search_interface.py tests/test_server.py tests/test_package_metadata.py tests/test_ci_workflow.py -q",
+        "exit_code": 1,
+        "output_tail": "FAILED tests/test_search_interface.py::test_linux_regex_uses_long_option_for_mlocate\nFAILED tests/test_search_interface.py::test_linux_count_files_returns_match_count\nFAILED tests/test_search_interface.py::test_windows_provider_requires_a_non_empty_sdk_path[None]\nFAILED tests/test_search_interface.py::test_windows_provider_requires_a_non_empty_sdk_path[]\nFAILED tests/test_search_interface.py::test_windows_provider_rejects_missing_dll_file\nFAILED tests/test_search_interface.py::test_windows_provider_rejects_a_directory_as_dll_path\nFAILED tests/test_search_interface.py::test_windows_provider_loads_sdk_from_existing_dll_path\nFAILED tests/test_search_interface.py::test_get_provider_passes_everything_sdk_path_to_windows_provider\nFAILED tests/test_server.py::test_resolve_tool_name_defaults_to_search[None-search]\nFAILED tests/test_server.py::test_resolve_tool_name_defaults_to_search[-search]\nFAILED tests/test_server.py::test_resolve_tool_name_defaults_to_search[everything_search-everything_search]\nFAILED tests/test_server.py::test_resolve_tool_name_rejects_names_clients_cannot_use[bad name]\nFAILED tests/test_server.py::test_resolve_tool_name_rejects_names_clients_cannot_use[search!]\nFAILED tests/test_server.py::test_resolve_tool_name_rejects_names_clients_cannot_use[xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx]\nFAILED tests/test_server.py::test_resolve_tool_name_rejects_names_clients_cannot_use[search\\n]\nFAILED tests/test_server.py::test_build_search_tool_uses_given_tool_name - Ty...\nFAILED tests/test_server.py::test_server_with_custom_tool_name_lists_and_answers_under_that_name\nFAILED tests/test_server.py::test_serve_uses_tool_name_from_environment - Ass...\nFAILED tests/test_server.py::test_main_exits_with_status_1_for_invalid_tool_name\n29 failed, 74 passed in 0.79s",
+        "classification": "red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/003-raw-syntax-guide-strings.lock.json"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": {
+    "model": "claude-opus-5-5",
+    "client": "claude-code",
+    "skills": [
+      "maid-planner"
+    ],
+    "source": "flags"
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "src/mcp_server_everything_search/search_interface.py:attribute:LinuxSearchProvider.locate_cmd",
+      "src/mcp_server_everything_search/search_interface.py:attribute:LinuxSearchProvider.locate_cmd:kind=attribute",
+      "src/mcp_server_everything_search/search_interface.py:attribute:LinuxSearchProvider.locate_cmd:of=LinuxSearchProvider",
+      "src/mcp_server_everything_search/search_interface.py:attribute:LinuxSearchProvider.locate_cmd:type=str",
+      "src/mcp_server_everything_search/search_interface.py:attribute:LinuxSearchProvider.locate_type",
+      "src/mcp_server_everything_search/search_interface.py:attribute:LinuxSearchProvider.locate_type:kind=attribute",
+      "src/mcp_server_everything_search/search_interface.py:attribute:LinuxSearchProvider.locate_type:of=LinuxSearchProvider",
+      "src/mcp_server_everything_search/search_interface.py:attribute:LinuxSearchProvider.locate_type:type=str",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SEARCH_TIMEOUT_SECONDS",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SEARCH_TIMEOUT_SECONDS:kind=attribute",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SEARCH_TIMEOUT_SECONDS:type=float",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SearchResult.accessed",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SearchResult.accessed:kind=attribute",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SearchResult.accessed:of=SearchResult",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SearchResult.accessed:type=Optional[datetime]",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SearchResult.attributes",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SearchResult.attributes:kind=attribute",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SearchResult.attributes:of=SearchResult",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SearchResult.attributes:type=Optional[str]",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SearchResult.created",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SearchResult.created:kind=attribute",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SearchResult.created:of=SearchResult",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SearchResult.created:type=Optional[datetime]",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SearchResult.extension",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SearchResult.extension:kind=attribute",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SearchResult.extension:of=SearchResult",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SearchResult.extension:type=Optional[str]",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SearchResult.filename",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SearchResult.filename:kind=attribute",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SearchResult.filename:of=SearchResult",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SearchResult.filename:type=str",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SearchResult.modified",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SearchResult.modified:kind=attribute",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SearchResult.modified:of=SearchResult",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SearchResult.modified:type=Optional[datetime]",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SearchResult.path",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SearchResult.path:kind=attribute",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SearchResult.path:of=SearchResult",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SearchResult.path:type=str",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SearchResult.size",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SearchResult.size:kind=attribute",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SearchResult.size:of=SearchResult",
+      "src/mcp_server_everything_search/search_interface.py:attribute:SearchResult.size:type=Optional[int]",
+      "src/mcp_server_everything_search/search_interface.py:attribute:WindowsSearchProvider.everything_sdk",
+      "src/mcp_server_everything_search/search_interface.py:attribute:WindowsSearchProvider.everything_sdk:kind=attribute",
+      "src/mcp_server_everything_search/search_interface.py:attribute:WindowsSearchProvider.everything_sdk:of=WindowsSearchProvider",
+      "src/mcp_server_everything_search/search_interface.py:attribute:WindowsSearchProvider.everything_sdk:type=EverythingBackend",
+      "src/mcp_server_everything_search/search_interface.py:class:EverythingBackend",
+      "src/mcp_server_everything_search/search_interface.py:class:EverythingBackend:base=Protocol",
+      "src/mcp_server_everything_search/search_interface.py:class:EverythingBackend:kind=class",
+      "src/mcp_server_everything_search/search_interface.py:class:LinuxSearchProvider",
+      "src/mcp_server_everything_search/search_interface.py:class:LinuxSearchProvider:base=SearchProvider",
+      "src/mcp_server_everything_search/search_interface.py:class:LinuxSearchProvider:kind=class",
+      "src/mcp_server_everything_search/search_interface.py:class:MacSearchProvider",
+      "src/mcp_server_everything_search/search_interface.py:class:MacSearchProvider:base=SearchProvider",
+      "src/mcp_server_everything_search/search_interface.py:class:MacSearchProvider:kind=class",
+      "src/mcp_server_everything_search/search_interface.py:class:SearchProvider",
+      "src/mcp_server_everything_search/search_interface.py:class:SearchProvider:base=abc.ABC",
+      "src/mcp_server_everything_search/search_interface.py:class:SearchProvider:kind=class",
+      "src/mcp_server_everything_search/search_interface.py:class:SearchResult",
+      "src/mcp_server_everything_search/search_interface.py:class:SearchResult:kind=class",
+      "src/mcp_server_everything_search/search_interface.py:class:WindowsSearchProvider",
+      "src/mcp_server_everything_search/search_interface.py:class:WindowsSearchProvider:base=SearchProvider",
+      "src/mcp_server_everything_search/search_interface.py:class:WindowsSearchProvider:kind=class",
+      "src/mcp_server_everything_search/search_interface.py:function:run_command",
+      "src/mcp_server_everything_search/search_interface.py:function:run_command:arg=cmd:type=List[str]:default=None",
+      "src/mcp_server_everything_search/search_interface.py:function:run_command:arg=timeout:type=float:default=SEARCH_TIMEOUT_SECONDS",
+      "src/mcp_server_everything_search/search_interface.py:function:run_command:kind=function",
+      "src/mcp_server_everything_search/search_interface.py:function:run_command:returns=subprocess.CompletedProcess[str]",
+      "src/mcp_server_everything_search/search_interface.py:method:EverythingBackend.search_files",
+      "src/mcp_server_everything_search/search_interface.py:method:EverythingBackend.search_files:arg=match_case:type=bool:default=None",
+      "src/mcp_server_everything_search/search_interface.py:method:EverythingBackend.search_files:arg=match_path:type=bool:default=None",
+      "src/mcp_server_everything_search/search_interface.py:method:EverythingBackend.search_files:arg=match_regex:type=bool:default=None",
+      "src/mcp_server_everything_search/search_interface.py:method:EverythingBackend.search_files:arg=match_whole_word:type=bool:default=None",
+      "src/mcp_server_everything_search/search_interface.py:method:EverythingBackend.search_files:arg=max_results:type=int:default=None",
+      "src/mcp_server_everything_search/search_interface.py:method:EverythingBackend.search_files:arg=query:type=str:default=None",
+      "src/mcp_server_everything_search/search_interface.py:method:EverythingBackend.search_files:arg=sort_by:type=int:default=None",
+      "src/mcp_server_everything_search/search_interface.py:method:EverythingBackend.search_files:kind=method",
+      "src/mcp_server_everything_search/search_interface.py:method:EverythingBackend.search_files:of=EverythingBackend",
+      "src/mcp_server_everything_search/search_interface.py:method:EverythingBackend.search_files:returns=List[Any]",
+      "src/mcp_server_everything_search/search_interface.py:method:LinuxSearchProvider.__init__",
+      "src/mcp_server_everything_search/search_interface.py:method:LinuxSearchProvider.__init__:arg=run_command:type=Callable[[List[str]], subprocess.CompletedProcess[str]]:default=run_command",
+      "src/mcp_server_everything_search/search_interface.py:method:LinuxSearchProvider.__init__:kind=method",
+      "src/mcp_server_everything_search/search_interface.py:method:LinuxSearchProvider.__init__:of=LinuxSearchProvider",
+      "src/mcp_server_everything_search/search_interface.py:method:LinuxSearchProvider.__init__:returns=None",
+      "src/mcp_server_everything_search/search_interface.py:method:LinuxSearchProvider.count_files",
+      "src/mcp_server_everything_search/search_interface.py:method:LinuxSearchProvider.count_files:arg=existing_files:type=bool:default=True",
+      "src/mcp_server_everything_search/search_interface.py:method:LinuxSearchProvider.count_files:arg=ignore_case:type=bool:default=True",
+      "src/mcp_server_everything_search/search_interface.py:method:LinuxSearchProvider.count_files:arg=query:type=str:default=None",
+      "src/mcp_server_everything_search/search_interface.py:method:LinuxSearchProvider.count_files:arg=regex_search:type=bool:default=False",
+      "src/mcp_server_everything_search/search_interface.py:method:LinuxSearchProvider.count_files:kind=method",
+      "src/mcp_server_everything_search/search_interface.py:method:LinuxSearchProvider.count_files:of=LinuxSearchProvider",
+      "src/mcp_server_everything_search/search_interface.py:method:LinuxSearchProvider.count_files:returns=int",
+      "src/mcp_server_everything_search/search_interface.py:method:LinuxSearchProvider.search_files",
+      "src/mcp_server_everything_search/search_interface.py:method:LinuxSearchProvider.search_files:arg=existing_files:type=bool:default=True",
+      "src/mcp_server_everything_search/search_interface.py:method:LinuxSearchProvider.search_files:arg=ignore_case:type=bool:default=True",
+      "src/mcp_server_everything_search/search_interface.py:method:LinuxSearchProvider.search_files:arg=max_results:type=int:default=100",
+      "src/mcp_server_everything_search/search_interface.py:method:LinuxSearchProvider.search_files:arg=query:type=str:default=None",
+      "src/mcp_server_everything_search/search_interface.py:method:LinuxSearchProvider.search_files:arg=regex_search:type=bool:default=False",
+      "src/mcp_server_everything_search/search_interface.py:method:LinuxSearchProvider.search_files:kind=method",
+      "src/mcp_server_everything_search/search_interface.py:method:LinuxSearchProvider.search_files:of=LinuxSearchProvider",
+      "src/mcp_server_everything_search/search_interface.py:method:LinuxSearchProvider.search_files:returns=List[SearchResult]",
+      "src/mcp_server_everything_search/search_interface.py:method:MacSearchProvider.__init__",
+      "src/mcp_server_everything_search/search_interface.py:method:MacSearchProvider.__init__:arg=run_command:type=Callable[[List[str]], subprocess.CompletedProcess[str]]:default=run_command",
+      "src/mcp_server_everything_search/search_interface.py:method:MacSearchProvider.__init__:kind=method",
+      "src/mcp_server_everything_search/search_interface.py:method:MacSearchProvider.__init__:of=MacSearchProvider",
+      "src/mcp_server_everything_search/search_interface.py:method:MacSearchProvider.__init__:returns=None",
+      "src/mcp_server_everything_search/search_interface.py:method:MacSearchProvider.search_files",
+      "src/mcp_server_everything_search/search_interface.py:method:MacSearchProvider.search_files:arg=interpret_query:type=bool:default=False",
+      "src/mcp_server_everything_search/search_interface.py:method:MacSearchProvider.search_files:arg=literal_query:type=bool:default=False",
+      "src/mcp_server_everything_search/search_interface.py:method:MacSearchProvider.search_files:arg=live_updates:type=bool:default=False",
+      "src/mcp_server_everything_search/search_interface.py:method:MacSearchProvider.search_files:arg=max_results:type=int:default=100",
+      "src/mcp_server_everything_search/search_interface.py:method:MacSearchProvider.search_files:arg=query:type=str:default=None",
+      "src/mcp_server_everything_search/search_interface.py:method:MacSearchProvider.search_files:arg=search_directory:type=Optional[str]:default=None",
+      "src/mcp_server_everything_search/search_interface.py:method:MacSearchProvider.search_files:kind=method",
+      "src/mcp_server_everything_search/search_interface.py:method:MacSearchProvider.search_files:of=MacSearchProvider",
+      "src/mcp_server_everything_search/search_interface.py:method:MacSearchProvider.search_files:returns=List[SearchResult]",
+      "src/mcp_server_everything_search/search_interface.py:method:SearchProvider.count_files",
+      "src/mcp_server_everything_search/search_interface.py:method:SearchProvider.count_files:arg=existing_files:type=bool:default=True",
+      "src/mcp_server_everything_search/search_interface.py:method:SearchProvider.count_files:arg=ignore_case:type=bool:default=True",
+      "src/mcp_server_everything_search/search_interface.py:method:SearchProvider.count_files:arg=query:type=str:default=None",
+      "src/mcp_server_everything_search/search_interface.py:method:SearchProvider.count_files:arg=regex_search:type=bool:default=False",
+      "src/mcp_server_everything_search/search_interface.py:method:SearchProvider.count_files:kind=method",
+      "src/mcp_server_everything_search/search_interface.py:method:SearchProvider.count_files:of=SearchProvider",
+      "src/mcp_server_everything_search/search_interface.py:method:SearchProvider.count_files:returns=int",
+      "src/mcp_server_everything_search/search_interface.py:method:SearchProvider.get_provider",
+      "src/mcp_server_everything_search/search_interface.py:method:SearchProvider.get_provider:kind=method",
+      "src/mcp_server_everything_search/search_interface.py:method:SearchProvider.get_provider:of=SearchProvider",
+      "src/mcp_server_everything_search/search_interface.py:method:SearchProvider.get_provider:returns=SearchProvider",
+      "src/mcp_server_everything_search/search_interface.py:method:SearchProvider.search_files",
+      "src/mcp_server_everything_search/search_interface.py:method:SearchProvider.search_files:arg=max_results:type=int:default=100",
+      "src/mcp_server_everything_search/search_interface.py:method:SearchProvider.search_files:arg=query:type=str:default=None",
+      "src/mcp_server_everything_search/search_interface.py:method:SearchProvider.search_files:kind=method",
+      "src/mcp_server_everything_search/search_interface.py:method:SearchProvider.search_files:of=SearchProvider",
+      "src/mcp_server_everything_search/search_interface.py:method:SearchProvider.search_files:returns=List[SearchResult]",
+      "src/mcp_server_everything_search/search_interface.py:method:WindowsSearchProvider.__init__",
+      "src/mcp_server_everything_search/search_interface.py:method:WindowsSearchProvider.__init__:arg=dll_path:type=Optional[str]:default=None",
+      "src/mcp_server_everything_search/search_interface.py:method:WindowsSearchProvider.__init__:arg=everything_sdk:type=Optional[EverythingBackend]:default=None",
+      "src/mcp_server_everything_search/search_interface.py:method:WindowsSearchProvider.__init__:kind=method",
+      "src/mcp_server_everything_search/search_interface.py:method:WindowsSearchProvider.__init__:of=WindowsSearchProvider",
+      "src/mcp_server_everything_search/search_interface.py:method:WindowsSearchProvider.__init__:returns=None",
+      "src/mcp_server_everything_search/search_interface.py:method:WindowsSearchProvider.search_files",
+      "src/mcp_server_everything_search/search_interface.py:method:WindowsSearchProvider.search_files:arg=match_case:type=bool:default=False",
+      "src/mcp_server_everything_search/search_interface.py:method:WindowsSearchProvider.search_files:arg=match_path:type=bool:default=False",
+      "src/mcp_server_everything_search/search_interface.py:method:WindowsSearchProvider.search_files:arg=match_regex:type=bool:default=False",
+      "src/mcp_server_everything_search/search_interface.py:method:WindowsSearchProvider.search_files:arg=match_whole_word:type=bool:default=False",
+      "src/mcp_server_everything_search/search_interface.py:method:WindowsSearchProvider.search_files:arg=max_results:type=int:default=100",
+      "src/mcp_server_everything_search/search_interface.py:method:WindowsSearchProvider.search_files:arg=query:type=str:default=None",
+      "src/mcp_server_everything_search/search_interface.py:method:WindowsSearchProvider.search_files:arg=sort_by:type=Optional[int]:default=None",
+      "src/mcp_server_everything_search/search_interface.py:method:WindowsSearchProvider.search_files:kind=method",
+      "src/mcp_server_everything_search/search_interface.py:method:WindowsSearchProvider.search_files:of=WindowsSearchProvider",
+      "src/mcp_server_everything_search/search_interface.py:method:WindowsSearchProvider.search_files:returns=List[SearchResult]",
+      "src/mcp_server_everything_search/server.py:function:build_search_tool",
+      "src/mcp_server_everything_search/server.py:function:build_search_tool:arg=system:type=str:default=None",
+      "src/mcp_server_everything_search/server.py:function:build_search_tool:arg=tool_name:type=str:default=_DEFAULT_TOOL_NAME",
+      "src/mcp_server_everything_search/server.py:function:build_search_tool:kind=function",
+      "src/mcp_server_everything_search/server.py:function:build_search_tool:returns=Tool",
+      "src/mcp_server_everything_search/server.py:function:configure_windows_console",
+      "src/mcp_server_everything_search/server.py:function:configure_windows_console:kind=function",
+      "src/mcp_server_everything_search/server.py:function:configure_windows_console:returns=None",
+      "src/mcp_server_everything_search/server.py:function:create_server",
+      "src/mcp_server_everything_search/server.py:function:create_server:arg=search_provider:type=SearchProvider:default=None",
+      "src/mcp_server_everything_search/server.py:function:create_server:arg=system:type=str:default=None",
+      "src/mcp_server_everything_search/server.py:function:create_server:arg=tool_name:type=str:default=_DEFAULT_TOOL_NAME",
+      "src/mcp_server_everything_search/server.py:function:create_server:kind=function",
+      "src/mcp_server_everything_search/server.py:function:create_server:returns=Server",
+      "src/mcp_server_everything_search/server.py:function:format_results",
+      "src/mcp_server_everything_search/server.py:function:format_results:arg=results:type=List[SearchResult]:default=None",
+      "src/mcp_server_everything_search/server.py:function:format_results:kind=function",
+      "src/mcp_server_everything_search/server.py:function:format_results:returns=str",
+      "src/mcp_server_everything_search/server.py:function:main",
+      "src/mcp_server_everything_search/server.py:function:main:kind=function",
+      "src/mcp_server_everything_search/server.py:function:main:returns=None",
+      "src/mcp_server_everything_search/server.py:function:parse_search_arguments",
+      "src/mcp_server_everything_search/server.py:function:parse_search_arguments:arg=arguments:type=Optional[Dict[str, Any]]:default=None",
+      "src/mcp_server_everything_search/server.py:function:parse_search_arguments:kind=function",
+      "src/mcp_server_everything_search/server.py:function:parse_search_arguments:returns=UnifiedSearchQuery",
+      "src/mcp_server_everything_search/server.py:function:resolve_tool_name",
+      "src/mcp_server_everything_search/server.py:function:resolve_tool_name:arg=value:type=Optional[str]:default=None",
+      "src/mcp_server_everything_search/server.py:function:resolve_tool_name:kind=function",
+      "src/mcp_server_everything_search/server.py:function:resolve_tool_name:returns=str",
+      "src/mcp_server_everything_search/server.py:function:serve",
+      "src/mcp_server_everything_search/server.py:function:serve:kind=function",
+      "src/mcp_server_everything_search/server.py:function:serve:returns=None",
+      "tests/test_package_metadata.py:test_mcp_requirement_allows_mcp_2_versions",
+      "tests/test_package_metadata.py:test_mcp_requirement_allows_mcp_2_versions:kind=test_function",
+      "tests/test_package_metadata.py:test_mcp_requirement_excludes_mcp_1_and_next_major_versions",
+      "tests/test_package_metadata.py:test_mcp_requirement_excludes_mcp_1_and_next_major_versions:kind=test_function",
+      "tests/test_search_interface.py:test_count_files_is_unsupported_by_default",
+      "tests/test_search_interface.py:test_count_files_is_unsupported_by_default:kind=test_function",
+      "tests/test_search_interface.py:test_default_command_timeout_is_30_seconds",
+      "tests/test_search_interface.py:test_default_command_timeout_is_30_seconds:kind=test_function",
+      "tests/test_search_interface.py:test_existing_file_result_includes_stat_details",
+      "tests/test_search_interface.py:test_existing_file_result_includes_stat_details:kind=test_function",
+      "tests/test_search_interface.py:test_get_provider_passes_everything_sdk_path_to_windows_provider",
+      "tests/test_search_interface.py:test_get_provider_passes_everything_sdk_path_to_windows_provider:kind=test_function",
+      "tests/test_search_interface.py:test_get_provider_returns_platform_provider",
+      "tests/test_search_interface.py:test_get_provider_returns_platform_provider:kind=test_function",
+      "tests/test_search_interface.py:test_get_provider_unsupported_platform_raises",
+      "tests/test_search_interface.py:test_get_provider_unsupported_platform_raises:kind=test_function",
+      "tests/test_search_interface.py:test_inaccessible_path_result_has_basic_info_only",
+      "tests/test_search_interface.py:test_inaccessible_path_result_has_basic_info_only:kind=test_function",
+      "tests/test_search_interface.py:test_linux_count_files_missing_database_raises_updatedb_hint",
+      "tests/test_search_interface.py:test_linux_count_files_missing_database_raises_updatedb_hint:kind=test_function",
+      "tests/test_search_interface.py:test_linux_count_files_returns_match_count",
+      "tests/test_search_interface.py:test_linux_count_files_returns_match_count:kind=test_function",
+      "tests/test_search_interface.py:test_linux_count_files_with_unparseable_output_raises",
+      "tests/test_search_interface.py:test_linux_count_files_with_unparseable_output_raises:kind=test_function",
+      "tests/test_search_interface.py:test_linux_default_search_ignores_case_existing_only_and_limits",
+      "tests/test_search_interface.py:test_linux_default_search_ignores_case_existing_only_and_limits:kind=test_function",
+      "tests/test_search_interface.py:test_linux_falls_back_to_locate",
+      "tests/test_search_interface.py:test_linux_falls_back_to_locate:kind=test_function",
+      "tests/test_search_interface.py:test_linux_missing_database_raises_updatedb_hint",
+      "tests/test_search_interface.py:test_linux_missing_database_raises_updatedb_hint:kind=test_function",
+      "tests/test_search_interface.py:test_linux_other_failure_raises_with_stderr",
+      "tests/test_search_interface.py:test_linux_other_failure_raises_with_stderr:kind=test_function",
+      "tests/test_search_interface.py:test_linux_params_map_to_locate_flags_issue_30",
+      "tests/test_search_interface.py:test_linux_params_map_to_locate_flags_issue_30:kind=test_function",
+      "tests/test_search_interface.py:test_linux_prefers_plocate",
+      "tests/test_search_interface.py:test_linux_prefers_plocate:kind=test_function",
+      "tests/test_search_interface.py:test_linux_query_starting_with_dash_is_searched_not_parsed_as_option",
+      "tests/test_search_interface.py:test_linux_query_starting_with_dash_is_searched_not_parsed_as_option:kind=test_function",
+      "tests/test_search_interface.py:test_linux_regex_uses_long_option_for_mlocate",
+      "tests/test_search_interface.py:test_linux_regex_uses_long_option_for_mlocate:kind=test_function",
+      "tests/test_search_interface.py:test_linux_without_any_locate_raises_install_hint",
+      "tests/test_search_interface.py:test_linux_without_any_locate_raises_install_hint:kind=test_function",
+      "tests/test_search_interface.py:test_mac_default_search_is_filename_search_limited_to_max_results",
+      "tests/test_search_interface.py:test_mac_default_search_is_filename_search_limited_to_max_results:kind=test_function",
+      "tests/test_search_interface.py:test_mac_filename_query_starting_with_dash_is_passed_as_name_value",
+      "tests/test_search_interface.py:test_mac_filename_query_starting_with_dash_is_passed_as_name_value:kind=test_function",
+      "tests/test_search_interface.py:test_mac_literal_or_interpret_passes_raw_query",
+      "tests/test_search_interface.py:test_mac_literal_or_interpret_passes_raw_query:kind=test_function",
+      "tests/test_search_interface.py:test_mac_live_updates_is_rejected_because_mdfind_live_never_exits",
+      "tests/test_search_interface.py:test_mac_live_updates_is_rejected_because_mdfind_live_never_exits:kind=test_function",
+      "tests/test_search_interface.py:test_mac_mdfind_failure_raises_with_stderr",
+      "tests/test_search_interface.py:test_mac_mdfind_failure_raises_with_stderr:kind=test_function",
+      "tests/test_search_interface.py:test_mac_missing_search_directory_is_rejected",
+      "tests/test_search_interface.py:test_mac_missing_search_directory_is_rejected:kind=test_function",
+      "tests/test_search_interface.py:test_mac_raw_query_starting_with_dash_is_rejected",
+      "tests/test_search_interface.py:test_mac_raw_query_starting_with_dash_is_rejected:kind=test_function",
+      "tests/test_search_interface.py:test_mac_scoped_literal_query_orders_directory_then_flags",
+      "tests/test_search_interface.py:test_mac_scoped_literal_query_orders_directory_then_flags:kind=test_function",
+      "tests/test_search_interface.py:test_mac_search_directory_expands_home",
+      "tests/test_search_interface.py:test_mac_search_directory_expands_home:kind=test_function",
+      "tests/test_search_interface.py:test_mac_search_directory_scopes_search_issue_25",
+      "tests/test_search_interface.py:test_mac_search_directory_scopes_search_issue_25:kind=test_function",
+      "tests/test_search_interface.py:test_run_command_captures_text_output_and_exit_code",
+      "tests/test_search_interface.py:test_run_command_captures_text_output_and_exit_code:kind=test_function",
+      "tests/test_search_interface.py:test_run_command_times_out_with_clear_error",
+      "tests/test_search_interface.py:test_run_command_times_out_with_clear_error:kind=test_function",
+      "tests/test_search_interface.py:test_run_command_uses_default_timeout_when_none_given",
+      "tests/test_search_interface.py:test_run_command_uses_default_timeout_when_none_given:kind=test_function",
+      "tests/test_search_interface.py:test_windows_normalizes_slashes_and_forwards_options_to_sdk",
+      "tests/test_search_interface.py:test_windows_normalizes_slashes_and_forwards_options_to_sdk:kind=test_function",
+      "tests/test_search_interface.py:test_windows_provider_loads_sdk_from_existing_dll_path",
+      "tests/test_search_interface.py:test_windows_provider_loads_sdk_from_existing_dll_path:kind=test_function",
+      "tests/test_search_interface.py:test_windows_provider_rejects_a_directory_as_dll_path",
+      "tests/test_search_interface.py:test_windows_provider_rejects_a_directory_as_dll_path:kind=test_function",
+      "tests/test_search_interface.py:test_windows_provider_rejects_missing_dll_file",
+      "tests/test_search_interface.py:test_windows_provider_rejects_missing_dll_file:kind=test_function",
+      "tests/test_search_interface.py:test_windows_provider_requires_a_non_empty_sdk_path",
+      "tests/test_search_interface.py:test_windows_provider_requires_a_non_empty_sdk_path:kind=test_function",
+      "tests/test_search_interface.py:test_windows_without_sort_by_uses_everything_name_ascending_default",
+      "tests/test_search_interface.py:test_windows_without_sort_by_uses_everything_name_ascending_default:kind=test_function",
+      "tests/test_server.py:test_build_search_tool_darwin_describes_mdfind",
+      "tests/test_server.py:test_build_search_tool_darwin_describes_mdfind:kind=test_function",
+      "tests/test_server.py:test_build_search_tool_linux_describes_locate",
+      "tests/test_server.py:test_build_search_tool_linux_describes_locate:kind=test_function",
+      "tests/test_server.py:test_build_search_tool_unknown_platform_says_unknown",
+      "tests/test_server.py:test_build_search_tool_unknown_platform_says_unknown:kind=test_function",
+      "tests/test_server.py:test_build_search_tool_uses_given_tool_name",
+      "tests/test_server.py:test_build_search_tool_uses_given_tool_name:kind=test_function",
+      "tests/test_server.py:test_build_search_tool_windows_uses_platform_schema_and_everything_docs",
+      "tests/test_server.py:test_build_search_tool_windows_uses_platform_schema_and_everything_docs:kind=test_function",
+      "tests/test_server.py:test_configure_windows_console_is_noop_off_windows",
+      "tests/test_server.py:test_configure_windows_console_is_noop_off_windows:kind=test_function",
+      "tests/test_server.py:test_format_results_empty_list_is_empty_text",
+      "tests/test_server.py:test_format_results_empty_list_is_empty_text:kind=test_function",
+      "tests/test_server.py:test_format_results_joins_multiple_results_with_newline",
+      "tests/test_server.py:test_format_results_joins_multiple_results_with_newline:kind=test_function",
+      "tests/test_server.py:test_format_results_omits_extension_suffix_when_absent",
+      "tests/test_server.py:test_format_results_omits_extension_suffix_when_absent:kind=test_function",
+      "tests/test_server.py:test_format_results_renders_every_field_with_na_for_missing_dates",
+      "tests/test_server.py:test_format_results_renders_every_field_with_na_for_missing_dates:kind=test_function",
+      "tests/test_server.py:test_main_exits_with_status_1_for_invalid_tool_name",
+      "tests/test_server.py:test_main_exits_with_status_1_for_invalid_tool_name:kind=test_function",
+      "tests/test_server.py:test_main_exits_with_status_1_when_serve_fails",
+      "tests/test_server.py:test_main_exits_with_status_1_when_serve_fails:kind=test_function",
+      "tests/test_server.py:test_parse_arguments_accepts_base_as_json_string",
+      "tests/test_server.py:test_parse_arguments_accepts_base_as_json_string:kind=test_function",
+      "tests/test_server.py:test_parse_arguments_accepts_windows_params_as_json_string",
+      "tests/test_server.py:test_parse_arguments_accepts_windows_params_as_json_string:kind=test_function",
+      "tests/test_server.py:test_parse_arguments_reads_base_dict_and_windows_params",
+      "tests/test_server.py:test_parse_arguments_reads_base_dict_and_windows_params:kind=test_function",
+      "tests/test_server.py:test_parse_arguments_reads_mac_and_linux_params_issue_30",
+      "tests/test_server.py:test_parse_arguments_reads_mac_and_linux_params_issue_30:kind=test_function",
+      "tests/test_server.py:test_parse_arguments_rejects_base_of_wrong_type",
+      "tests/test_server.py:test_parse_arguments_rejects_base_of_wrong_type:kind=test_function",
+      "tests/test_server.py:test_parse_arguments_rejects_invalid_platform_params_json",
+      "tests/test_server.py:test_parse_arguments_rejects_invalid_platform_params_json:kind=test_function",
+      "tests/test_server.py:test_parse_arguments_rejects_invalid_windows_params_json",
+      "tests/test_server.py:test_parse_arguments_rejects_invalid_windows_params_json:kind=test_function",
+      "tests/test_server.py:test_parse_arguments_treats_non_json_base_string_as_query",
+      "tests/test_server.py:test_parse_arguments_treats_non_json_base_string_as_query:kind=test_function",
+      "tests/test_server.py:test_parse_arguments_without_query_raises_validation_error",
+      "tests/test_server.py:test_parse_arguments_without_query_raises_validation_error:kind=test_function",
+      "tests/test_server.py:test_resolve_tool_name_defaults_to_search",
+      "tests/test_server.py:test_resolve_tool_name_defaults_to_search:kind=test_function",
+      "tests/test_server.py:test_resolve_tool_name_rejects_names_clients_cannot_use",
+      "tests/test_server.py:test_resolve_tool_name_rejects_names_clients_cannot_use:kind=test_function",
+      "tests/test_server.py:test_serve_runs_platform_provider_over_stdio",
+      "tests/test_server.py:test_serve_runs_platform_provider_over_stdio:kind=test_function",
+      "tests/test_server.py:test_serve_uses_tool_name_from_environment",
+      "tests/test_server.py:test_serve_uses_tool_name_from_environment:kind=test_function",
+      "tests/test_server.py:test_server_command_line_search_passes_only_query_and_max_results",
+      "tests/test_server.py:test_server_command_line_search_passes_only_query_and_max_results:kind=test_function",
+      "tests/test_server.py:test_server_darwin_search_passes_mac_params_issue_25",
+      "tests/test_server.py:test_server_darwin_search_passes_mac_params_issue_25:kind=test_function",
+      "tests/test_server.py:test_server_exposes_no_resources_templates_or_prompts",
+      "tests/test_server.py:test_server_exposes_no_resources_templates_or_prompts:kind=test_function",
+      "tests/test_server.py:test_server_linux_count_only_returns_match_count",
+      "tests/test_server.py:test_server_linux_count_only_returns_match_count:kind=test_function",
+      "tests/test_server.py:test_server_linux_search_passes_linux_params_issue_30",
+      "tests/test_server.py:test_server_linux_search_passes_linux_params_issue_30:kind=test_function",
+      "tests/test_server.py:test_server_lists_single_search_tool_with_platform_schema",
+      "tests/test_server.py:test_server_lists_single_search_tool_with_platform_schema:kind=test_function",
+      "tests/test_server.py:test_server_rejects_unknown_tool_with_invalid_params_error",
+      "tests/test_server.py:test_server_rejects_unknown_tool_with_invalid_params_error:kind=test_function",
+      "tests/test_server.py:test_server_reports_invalid_arguments_as_tool_error",
+      "tests/test_server.py:test_server_reports_invalid_arguments_as_tool_error:kind=test_function",
+      "tests/test_server.py:test_server_reports_mac_live_updates_as_tool_error",
+      "tests/test_server.py:test_server_reports_mac_live_updates_as_tool_error:kind=test_function",
+      "tests/test_server.py:test_server_reports_missing_arguments_as_tool_error",
+      "tests/test_server.py:test_server_reports_missing_arguments_as_tool_error:kind=test_function",
+      "tests/test_server.py:test_server_reports_provider_failure_as_tool_error",
+      "tests/test_server.py:test_server_reports_provider_failure_as_tool_error:kind=test_function",
+      "tests/test_server.py:test_server_search_path_follows_system_argument",
+      "tests/test_server.py:test_server_search_path_follows_system_argument:kind=test_function",
+      "tests/test_server.py:test_server_windows_search_passes_windows_params_and_returns_text",
+      "tests/test_server.py:test_server_windows_search_passes_windows_params_and_returns_text:kind=test_function",
+      "tests/test_server.py:test_server_windows_search_without_windows_params_uses_defaults",
+      "tests/test_server.py:test_server_windows_search_without_windows_params_uses_defaults:kind=test_function",
+      "tests/test_server.py:test_server_with_custom_tool_name_lists_and_answers_under_that_name",
+      "tests/test_server.py:test_server_with_custom_tool_name_lists_and_answers_under_that_name:kind=test_function"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "src/mcp_server_everything_search/search_interface.py",
+        "src/mcp_server_everything_search/server.py",
+        "tests/test_package_metadata.py",
+        "tests/test_search_interface.py",
+        "tests/test_server.py"
+      ],
+      "read": [
+        "manifests/007-apply-mac-linux-params.manifest.yaml",
+        "manifests/008-everything-sdk-robustness.manifest.yaml",
+        "src/mcp_server_everything_search/everything_sdk.py",
+        "src/mcp_server_everything_search/platform_search.py",
+        "tests/test_ci_workflow.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "src/mcp_server_everything_search/server.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "resolve_tool_name",
+              "description": "None/'' -> 'search'; otherwise must match ^[A-Za-z0-9_-]{1,64}$ or ValueError naming EVERYTHING_SEARCH_TOOL_NAME.",
+              "args": [
+                {
+                  "name": "value",
+                  "type": "Optional[str]"
+                }
+              ],
+              "returns": "str"
+            },
+            {
+              "kind": "function",
+              "name": "build_search_tool",
+              "description": "The single search tool (named tool_name, default 'search') with platform docs and UnifiedSearchQuery schema.",
+              "args": [
+                {
+                  "name": "system",
+                  "type": "str"
+                },
+                {
+                  "name": "tool_name",
+                  "type": "str",
+                  "default": "_DEFAULT_TOOL_NAME"
+                }
+              ],
+              "returns": "Tool"
+            },
+            {
+              "kind": "function",
+              "name": "parse_search_arguments",
+              "description": "Accepts base as dict, JSON string, or plain query string; windows_params as dict or JSON string.",
+              "args": [
+                {
+                  "name": "arguments",
+                  "type": "Optional[Dict[str, Any]]"
+                }
+              ],
+              "returns": "UnifiedSearchQuery"
+            },
+            {
+              "kind": "function",
+              "name": "format_results",
+              "args": [
+                {
+                  "name": "results",
+                  "type": "List[SearchResult]"
+                }
+              ],
+              "returns": "str"
+            },
+            {
+              "kind": "function",
+              "name": "create_server",
+              "description": "Lowlevel mcp 2.x Server; lists and answers only tool_name; other names raise MCPError(-32602).",
+              "args": [
+                {
+                  "name": "search_provider",
+                  "type": "SearchProvider"
+                },
+                {
+                  "name": "system",
+                  "type": "str"
+                },
+                {
+                  "name": "tool_name",
+                  "type": "str",
+                  "default": "_DEFAULT_TOOL_NAME"
+                }
+              ],
+              "returns": "Server"
+            },
+            {
+              "kind": "function",
+              "name": "serve",
+              "description": "Async composition root: reads EVERYTHING_SEARCH_TOOL_NAME via resolve_tool_name, real provider over stdio.",
+              "returns": "None"
+            },
+            {
+              "kind": "function",
+              "name": "configure_windows_console",
+              "returns": "None"
+            },
+            {
+              "kind": "function",
+              "name": "main",
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "src/mcp_server_everything_search/search_interface.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "SEARCH_TIMEOUT_SECONDS",
+              "description": "Default command timeout (30 s).",
+              "type": "float"
+            },
+            {
+              "kind": "class",
+              "name": "SearchResult",
+              "description": "Dataclass returned by every provider."
+            },
+            {
+              "kind": "attribute",
+              "name": "path",
+              "of": "SearchResult",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "filename",
+              "of": "SearchResult",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "extension",
+              "of": "SearchResult",
+              "type": "Optional[str]"
+            },
+            {
+              "kind": "attribute",
+              "name": "size",
+              "of": "SearchResult",
+              "type": "Optional[int]"
+            },
+            {
+              "kind": "attribute",
+              "name": "created",
+              "of": "SearchResult",
+              "type": "Optional[datetime]"
+            },
+            {
+              "kind": "attribute",
+              "name": "modified",
+              "of": "SearchResult",
+              "type": "Optional[datetime]"
+            },
+            {
+              "kind": "attribute",
+              "name": "accessed",
+              "of": "SearchResult",
+              "type": "Optional[datetime]"
+            },
+            {
+              "kind": "attribute",
+              "name": "attributes",
+              "of": "SearchResult",
+              "type": "Optional[str]"
+            },
+            {
+              "kind": "function",
+              "name": "run_command",
+              "description": "Default command runner: subprocess.run with captured text output; TimeoutExpired -> RuntimeError.",
+              "args": [
+                {
+                  "name": "cmd",
+                  "type": "List[str]"
+                },
+                {
+                  "name": "timeout",
+                  "type": "float",
+                  "default": "SEARCH_TIMEOUT_SECONDS"
+                }
+              ],
+              "returns": "subprocess.CompletedProcess[str]"
+            },
+            {
+              "kind": "class",
+              "name": "SearchProvider",
+              "bases": [
+                "abc.ABC"
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "search_files",
+              "of": "SearchProvider",
+              "args": [
+                {
+                  "name": "query",
+                  "type": "str"
+                },
+                {
+                  "name": "max_results",
+                  "type": "int",
+                  "default": "100"
+                }
+              ],
+              "returns": "List[SearchResult]"
+            },
+            {
+              "kind": "method",
+              "name": "count_files",
+              "description": "Raises NotImplementedError; only LinuxSearchProvider supports count_only. Same signature as the Linux override.",
+              "of": "SearchProvider",
+              "args": [
+                {
+                  "name": "query",
+                  "type": "str"
+                },
+                {
+                  "name": "ignore_case",
+                  "type": "bool",
+                  "default": "True"
+                },
+                {
+                  "name": "regex_search",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "existing_files",
+                  "type": "bool",
+                  "default": "True"
+                }
+              ],
+              "returns": "int"
+            },
+            {
+              "kind": "method",
+              "name": "get_provider",
+              "description": "Classmethod factory keyed on platform.system(); passes EVERYTHING_SDK_PATH to the Windows provider (composition root for the env var).",
+              "of": "SearchProvider",
+              "returns": "SearchProvider"
+            },
+            {
+              "kind": "class",
+              "name": "MacSearchProvider",
+              "bases": [
+                "SearchProvider"
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "__init__",
+              "of": "MacSearchProvider",
+              "args": [
+                {
+                  "name": "run_command",
+                  "type": "Callable[[List[str]], subprocess.CompletedProcess[str]]",
+                  "default": "run_command"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "method",
+              "name": "search_files",
+              "description": "Default `mdfind [-onlyin DIR] -name QUERY`; literal/interpret pass the raw query, which must not start with '-'; search_directory (~ expanded) must exist; live_updates raises ValueError.",
+              "of": "MacSearchProvider",
+              "args": [
+                {
+                  "name": "query",
+                  "type": "str"
+                },
+                {
+                  "name": "max_results",
+                  "type": "int",
+                  "default": "100"
+                },
+                {
+                  "name": "search_directory",
+                  "type": "Optional[str]",
+                  "default": "None"
+                },
+                {
+                  "name": "live_updates",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "literal_query",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "interpret_query",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "List[SearchResult]"
+            },
+            {
+              "kind": "class",
+              "name": "LinuxSearchProvider",
+              "bases": [
+                "SearchProvider"
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "__init__",
+              "of": "LinuxSearchProvider",
+              "args": [
+                {
+                  "name": "run_command",
+                  "type": "Callable[[List[str]], subprocess.CompletedProcess[str]]",
+                  "default": "run_command"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "attribute",
+              "name": "locate_cmd",
+              "of": "LinuxSearchProvider",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "locate_type",
+              "of": "LinuxSearchProvider",
+              "type": "str"
+            },
+            {
+              "kind": "method",
+              "name": "search_files",
+              "description": "Query follows '--' so a leading '-' is searched, not parsed as a locate option.",
+              "of": "LinuxSearchProvider",
+              "args": [
+                {
+                  "name": "query",
+                  "type": "str"
+                },
+                {
+                  "name": "max_results",
+                  "type": "int",
+                  "default": "100"
+                },
+                {
+                  "name": "ignore_case",
+                  "type": "bool",
+                  "default": "True"
+                },
+                {
+                  "name": "regex_search",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "existing_files",
+                  "type": "bool",
+                  "default": "True"
+                }
+              ],
+              "returns": "List[SearchResult]"
+            },
+            {
+              "kind": "method",
+              "name": "count_files",
+              "description": "Query follows '--' so a leading '-' is searched, not parsed as a locate option.",
+              "of": "LinuxSearchProvider",
+              "args": [
+                {
+                  "name": "query",
+                  "type": "str"
+                },
+                {
+                  "name": "ignore_case",
+                  "type": "bool",
+                  "default": "True"
+                },
+                {
+                  "name": "regex_search",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "existing_files",
+                  "type": "bool",
+                  "default": "True"
+                }
+              ],
+              "returns": "int"
+            },
+            {
+              "kind": "class",
+              "name": "EverythingBackend",
+              "description": "runtime_checkable narrow interface the Windows provider needs from the Everything SDK, so tests can inject a fake.",
+              "bases": [
+                "Protocol"
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "search_files",
+              "description": "Keyword-only. Returns everything_sdk's own result models (pre-existing; not search_interface.SearchResult).",
+              "of": "EverythingBackend",
+              "args": [
+                {
+                  "name": "query",
+                  "type": "str"
+                },
+                {
+                  "name": "max_results",
+                  "type": "int"
+                },
+                {
+                  "name": "match_path",
+                  "type": "bool"
+                },
+                {
+                  "name": "match_case",
+                  "type": "bool"
+                },
+                {
+                  "name": "match_whole_word",
+                  "type": "bool"
+                },
+                {
+                  "name": "match_regex",
+                  "type": "bool"
+                },
+                {
+                  "name": "sort_by",
+                  "type": "int"
+                }
+              ],
+              "returns": "List[Any]"
+            },
+            {
+              "kind": "class",
+              "name": "WindowsSearchProvider",
+              "bases": [
+                "SearchProvider"
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "__init__",
+              "description": "Injected backend, or load from dll_path; missing/empty dll_path or a non-file raise RuntimeError naming EVERYTHING_SDK_PATH.",
+              "of": "WindowsSearchProvider",
+              "args": [
+                {
+                  "name": "everything_sdk",
+                  "type": "Optional[EverythingBackend]",
+                  "default": "None"
+                },
+                {
+                  "name": "dll_path",
+                  "type": "Optional[str]",
+                  "default": "None"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "attribute",
+              "name": "everything_sdk",
+              "of": "WindowsSearchProvider",
+              "type": "EverythingBackend"
+            },
+            {
+              "kind": "method",
+              "name": "search_files",
+              "description": "Normalizes slashes; sort_by=None maps to 1 (Everything name-ascending default) instead of passing None to Everything_SetSort.",
+              "of": "WindowsSearchProvider",
+              "args": [
+                {
+                  "name": "query",
+                  "type": "str"
+                },
+                {
+                  "name": "max_results",
+                  "type": "int",
+                  "default": "100"
+                },
+                {
+                  "name": "match_path",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "match_case",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "match_whole_word",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "match_regex",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "sort_by",
+                  "type": "Optional[int]",
+                  "default": "None"
+                }
+              ],
+              "returns": "List[SearchResult]"
+            }
+          ]
+        },
+        {
+          "path": "tests/test_server.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_build_search_tool_windows_uses_platform_schema_and_everything_docs"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_build_search_tool_linux_describes_locate"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_build_search_tool_darwin_describes_mdfind"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_build_search_tool_unknown_platform_says_unknown"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_parse_arguments_reads_base_dict_and_windows_params"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_parse_arguments_accepts_base_as_json_string"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_parse_arguments_treats_non_json_base_string_as_query"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_parse_arguments_accepts_windows_params_as_json_string"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_parse_arguments_rejects_invalid_windows_params_json"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_parse_arguments_rejects_base_of_wrong_type"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_parse_arguments_without_query_raises_validation_error"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_parse_arguments_reads_mac_and_linux_params_issue_30"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_parse_arguments_rejects_invalid_platform_params_json"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_format_results_renders_every_field_with_na_for_missing_dates"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_format_results_omits_extension_suffix_when_absent"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_format_results_joins_multiple_results_with_newline"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_format_results_empty_list_is_empty_text"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_server_lists_single_search_tool_with_platform_schema"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_server_windows_search_passes_windows_params_and_returns_text"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_server_windows_search_without_windows_params_uses_defaults"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_server_command_line_search_passes_only_query_and_max_results"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_server_search_path_follows_system_argument"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_server_darwin_search_passes_mac_params_issue_25"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_server_linux_search_passes_linux_params_issue_30"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_server_linux_count_only_returns_match_count"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_server_reports_mac_live_updates_as_tool_error"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_server_reports_missing_arguments_as_tool_error"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_server_reports_provider_failure_as_tool_error"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_server_reports_invalid_arguments_as_tool_error"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_server_rejects_unknown_tool_with_invalid_params_error"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_server_exposes_no_resources_templates_or_prompts"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_configure_windows_console_is_noop_off_windows"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_main_exits_with_status_1_when_serve_fails"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_serve_runs_platform_provider_over_stdio"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_resolve_tool_name_defaults_to_search"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_resolve_tool_name_rejects_names_clients_cannot_use"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_build_search_tool_uses_given_tool_name"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_server_with_custom_tool_name_lists_and_answers_under_that_name"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_serve_uses_tool_name_from_environment"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_main_exits_with_status_1_for_invalid_tool_name"
+            }
+          ]
+        },
+        {
+          "path": "tests/test_package_metadata.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_mcp_requirement_excludes_mcp_1_and_next_major_versions"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_mcp_requirement_allows_mcp_2_versions"
+            }
+          ]
+        },
+        {
+          "path": "tests/test_search_interface.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_run_command_captures_text_output_and_exit_code"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_default_command_timeout_is_30_seconds"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_run_command_uses_default_timeout_when_none_given"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_run_command_times_out_with_clear_error"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_get_provider_returns_platform_provider"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_get_provider_unsupported_platform_raises"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_count_files_is_unsupported_by_default"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_mac_default_search_is_filename_search_limited_to_max_results"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_mac_search_directory_scopes_search_issue_25"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_mac_search_directory_expands_home"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_mac_missing_search_directory_is_rejected"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_mac_raw_query_starting_with_dash_is_rejected"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_mac_filename_query_starting_with_dash_is_passed_as_name_value"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_mac_literal_or_interpret_passes_raw_query"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_mac_scoped_literal_query_orders_directory_then_flags"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_mac_live_updates_is_rejected_because_mdfind_live_never_exits"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_mac_mdfind_failure_raises_with_stderr"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_linux_prefers_plocate"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_linux_falls_back_to_locate"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_linux_without_any_locate_raises_install_hint"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_linux_default_search_ignores_case_existing_only_and_limits"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_linux_params_map_to_locate_flags_issue_30"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_linux_query_starting_with_dash_is_searched_not_parsed_as_option"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_linux_regex_uses_long_option_for_mlocate"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_linux_count_files_returns_match_count"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_linux_count_files_with_unparseable_output_raises"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_linux_count_files_missing_database_raises_updatedb_hint"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_linux_missing_database_raises_updatedb_hint"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_linux_other_failure_raises_with_stderr"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_existing_file_result_includes_stat_details"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_inaccessible_path_result_has_basic_info_only"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_windows_normalizes_slashes_and_forwards_options_to_sdk"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_windows_without_sort_by_uses_everything_name_ascending_default"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_windows_provider_requires_a_non_empty_sdk_path"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_windows_provider_rejects_missing_dll_file"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_windows_provider_rejects_a_directory_as_dll_path"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_windows_provider_loads_sdk_from_existing_dll_path"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_get_provider_passes_everything_sdk_path_to_windows_provider"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "src/mcp_server_everything_search/platform_search.py",
+        "src/mcp_server_everything_search/everything_sdk.py",
+        "tests/test_ci_workflow.py",
+        "manifests/007-apply-mac-linux-params.manifest.yaml",
+        "manifests/008-everything-sdk-robustness.manifest.yaml"
+      ]
+    },
+    "test_files": [
+      "tests/test_ci_workflow.py",
+      "tests/test_package_metadata.py",
+      "tests/test_search_interface.py",
+      "tests/test_server.py"
+    ],
+    "validate_commands": [
+      "uv run pytest tests/test_search_interface.py tests/test_server.py tests/test_package_metadata.py tests/test_ci_workflow.py -q"
+    ],
+    "acceptance_commands": []
+  }
+}

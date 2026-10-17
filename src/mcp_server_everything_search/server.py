@@ -1,6 +1,8 @@
 """MCP server implementation for cross-platform file search."""
 
 import json
+import os
+import re
 import platform
 import sys
 from typing import Any, Dict, List, Optional
@@ -26,7 +28,10 @@ from pydantic import BaseModel
 from .platform_search import UnifiedSearchQuery, WindowsSpecificParams
 from .search_interface import PartialResults, SearchProvider, SearchResult
 
-_SEARCH_TOOL_NAME = "search"
+_DEFAULT_TOOL_NAME = "search"
+_TOOL_NAME_ENV = "EVERYTHING_SEARCH_TOOL_NAME"
+# Strictest common client limit (e.g. Anthropic tool names): letters, digits, "_" and "-", 1-64 chars
+_TOOL_NAME_PATTERN = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 
 _PLATFORM_INFO = {
     "windows": "Using Everything SDK with full search capabilities",
@@ -159,7 +164,18 @@ Examples:
 }
 
 
-def build_search_tool(system: str) -> Tool:
+def resolve_tool_name(value: Optional[str]) -> str:
+    """Return the configured tool name, or "search" when unset; reject names clients cannot use."""
+    if not value:
+        return _DEFAULT_TOOL_NAME
+    if not _TOOL_NAME_PATTERN.fullmatch(value):
+        raise ValueError(
+            f"Invalid {_TOOL_NAME_ENV} {value!r}: use 1-64 letters, digits, '_' or '-'"
+        )
+    return value
+
+
+def build_search_tool(system: str, tool_name: str = _DEFAULT_TOOL_NAME) -> Tool:
     """Return the search tool with platform-specific documentation and schema."""
     description = f"""Universal file search tool for {platform.system()}
 
@@ -170,7 +186,7 @@ Search Syntax Guide:
 {_SYNTAX_DOCS.get(system, "Platform-specific syntax guide not available")}
 """
     return Tool(
-        name=_SEARCH_TOOL_NAME,
+        name=tool_name,
         description=description,
         input_schema=UnifiedSearchQuery.get_schema_for_platform(),
     )
@@ -279,18 +295,20 @@ def _search_text(
     )
 
 
-def create_server(search_provider: SearchProvider, system: str) -> Server:
+def create_server(
+    search_provider: SearchProvider, system: str, tool_name: str = _DEFAULT_TOOL_NAME
+) -> Server:
     """Build the lowlevel mcp 2.x server bound to a provider and lowercase platform name."""
 
     async def on_list_tools(
         ctx: ServerRequestContext, params: Optional[PaginatedRequestParams]
     ) -> ListToolsResult:
-        return ListToolsResult(tools=[build_search_tool(system)])
+        return ListToolsResult(tools=[build_search_tool(system, tool_name)])
 
     async def on_call_tool(
         ctx: ServerRequestContext, params: CallToolRequestParams
     ) -> CallToolResult:
-        if params.name != _SEARCH_TOOL_NAME:
+        if params.name != tool_name:
             raise MCPError(INVALID_PARAMS, f"Unknown tool: {params.name}")
         try:
             query = parse_search_arguments(params.arguments)
@@ -332,7 +350,10 @@ def create_server(search_provider: SearchProvider, system: str) -> Server:
 
 async def serve() -> None:
     """Run the server over stdio with the current platform's search provider."""
-    server = create_server(SearchProvider.get_provider(), platform.system().lower())
+    tool_name = resolve_tool_name(os.environ.get(_TOOL_NAME_ENV))
+    server = create_server(
+        SearchProvider.get_provider(), platform.system().lower(), tool_name
+    )
     options = server.create_initialization_options()
     async with stdio_server() as (read_stream, write_stream):
         await server.run(read_stream, write_stream, options, raise_exceptions=True)

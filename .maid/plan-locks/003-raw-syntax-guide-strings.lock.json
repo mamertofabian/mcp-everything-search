@@ -2,11 +2,11 @@
   "manifest_path": "manifests/003-raw-syntax-guide-strings.manifest.yaml",
   "manifest_hash": "sha256-contract:5e24c758d16eba5ebf5f2e800c6570be39177fa732dd4833ed219ca2d16ef0b0",
   "test_hashes": {
-    "tests/test_server.py": "sha256-pyast:v2:08d177fc8c6b5f87a529df3ad1c8aada1583a972767add769b083a65dda99566",
+    "tests/test_server.py": "sha256-pyast:v2:29917a3a855f2d823dc0cd8e6b284b1537f9d22346cfaf20f4809a4bc044f26f",
     "tests/test_server_source.py": "sha256-pyast:v2:99372a179805a6328b3508cee8c1e9a33aebb291f7e509db8d5f08c5a3dddaf6"
   },
   "created_at": "2026-10-17T02:28:48.027493+00:00",
-  "revision": 3,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:410c4f70af08c9ddf0dccde0324d6efe461e8c5b1cb8783d0796aa3759e0969b",
@@ -34,6 +34,42 @@
       },
       "revised_at": "2026-10-17T03:11:10.596751+00:00",
       "reason": "tests/test_server.py (regression file run by 003, not its red evidence) was updated by superseding manifest 007-apply-mac-linux-params; 003 contract and red evidence (tests/test_server_source.py) unchanged.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:5e24c758d16eba5ebf5f2e800c6570be39177fa732dd4833ed219ca2d16ef0b0",
+      "prior_test_hashes": {
+        "tests/test_server.py": "sha256-pyast:v2:08d177fc8c6b5f87a529df3ad1c8aada1583a972767add769b083a65dda99566",
+        "tests/test_server_source.py": "sha256-pyast:v2:99372a179805a6328b3508cee8c1e9a33aebb291f7e509db8d5f08c5a3dddaf6"
+      },
+      "revised_at": "2026-10-17T04:42:25.297489+00:00",
+      "reason": "tests/test_server.py (regression file run by 003, not its red evidence) was updated by superseding manifest 009-harden-commands-and-tool-name; 003 contract and red evidence unchanged.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:5e24c758d16eba5ebf5f2e800c6570be39177fa732dd4833ed219ca2d16ef0b0",
+      "prior_test_hashes": {
+        "tests/test_server.py": "sha256-pyast:v2:25669b7202f0939a3d83f24563421cebc1f2597f521743b733263b46845f96e5",
+        "tests/test_server_source.py": "sha256-pyast:v2:99372a179805a6328b3508cee8c1e9a33aebb291f7e509db8d5f08c5a3dddaf6"
+      },
+      "revised_at": "2026-10-17T04:43:41.241347+00:00",
+      "reason": "tests/test_server.py updated again by 009 (newline tool-name case); 003 contract and red evidence unchanged.",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

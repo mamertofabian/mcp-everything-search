@@ -1,0 +1,650 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+sequence_number: 9
+goal: Harden external search commands and make the tool name configurable
+type: fix
+created: '2026-10-17T04:42:24Z'
+supersedes:
+- 007-apply-mac-linux-params
+metadata:
+  tags:
+  - security
+  - robustness
+  - configuration
+  issues:
+  - '#19'
+  borrowed_from:
+  - amcaude/mcp-everything-search@afd1b13
+  - kshin5/mcp-everything-search@7e5aef3
+description: |-
+  Supersedes 007 (pushed) because it changes behavior 007's locked tests pin
+  (exact locate command lines, mac search_directory values, Windows provider
+  construction). Re-declares the full server.py and search_interface.py
+  contracts; 008's PartialResults remains declared by 008 (chain merge).
+
+  Provider hardening, borrowed from amcaude `devin/1787761095-security-fixes`
+  (afd1b13), without its obsolete dependency bumps:
+  - run_command has a timeout (30 s default) and raises RuntimeError when a
+    command hangs, so a stuck mdfind/locate cannot hang the server.
+  - locate: the query follows "--" (verified with plocate 1.1.15), so a query
+    such as "--database=..." is searched instead of parsed as an option.
+  - mdfind: a literal/interpreted (raw) query must not start with "-" (it would
+    be parsed as an option, e.g. -live never exits); the default -name mode
+    passes the query as the value of -name, so it is unaffected.
+  - mdfind search_directory is expanded (~) and must exist; previously a typo
+    silently returned no results.
+  - Windows: the provider no longer falls back to the original author's
+    D:\dev\... DLL path. get_provider (the composition root) passes
+    EVERYTHING_SDK_PATH; unset or non-file paths raise a RuntimeError that
+    names the variable.
+
+  Configurable tool name (from kshin5 7e5aef3, #19): the tool stays "search" by
+  default; EVERYTHING_SEARCH_TOOL_NAME renames it (e.g. "everything_search") for
+  clients where a generic name collides with another server's tool. The name
+  must match ^[A-Za-z0-9_-]{1,64}$, the strictest common client limit; an
+  invalid value fails at startup (main exits 1). serve() reads the variable via
+  resolve_tool_name; create_server/build_search_tool take tool_name. Unknown
+  names, including "search" after a rename, raise MCPError(-32602).
+
+  008 dependency kept: WindowsSearchProvider.search_files still passes SDK
+  results through unchanged, so PartialResults reaches format_results
+  (008's end-to-end test).
+
+  tests/test_server.py is also hashed by 003's lock as a regression file; that
+  lock is refreshed with --preserve-red-evidence after promotion, as for 007.
+
+  Unverified: mdfind treating "-draft" as the value of -name (default mode) is
+  assumed from getopt semantics; there is no macOS host to check it. Docs
+  (README, CLAUDE.md, which still describes the removed D:\dev default) are
+  updated in a separate docs-only commit per the maintainer's no-MAID-for-docs
+  policy, so they are not in this manifest's scope.
+temptations:
+- risk: Rejecting every query that starts with '-' on all platforms.
+  instead: Use '--' for locate, reject only raw mdfind queries, and leave -name values and Everything queries alone.
+- risk: Renaming the tool by default, breaking existing client configs.
+  instead: Keep 'search' as default; rename only via EVERYTHING_SEARCH_TOOL_NAME.
+- risk: Reading environment variables inside providers or create_server.
+  instead: Read them at composition roots (get_provider, serve) and pass values in.
+- risk: Silently ignoring an invalid tool name or missing SDK path.
+  instead: Raise errors that name the variable; main exits 1.
+- risk: Changing WindowsSearchProvider.search_files to transform SDK results, dropping 008's PartialResults warning.
+  instead: Keep the passthrough; 008's end-to-end test guards it.
+files:
+  create: []
+  edit:
+  - path: src/mcp_server_everything_search/server.py
+    artifacts:
+    - kind: function
+      name: resolve_tool_name
+      args:
+      - name: value
+        type: Optional[str]
+      returns: str
+      description: None/'' -> 'search'; otherwise must match ^[A-Za-z0-9_-]{1,64}$ or ValueError naming EVERYTHING_SEARCH_TOOL_NAME.
+    - kind: function
+      name: build_search_tool
+      args:
+      - name: system
+        type: str
+      - name: tool_name
+        type: str
+        default: _DEFAULT_TOOL_NAME
+      returns: Tool
+      description: The single search tool (named tool_name, default 'search') with platform docs and UnifiedSearchQuery schema.
+    - kind: function
+      name: parse_search_arguments
+      args:
+      - name: arguments
+        type: Optional[Dict[str, Any]]
+      returns: UnifiedSearchQuery
+      description: Accepts base as dict, JSON string, or plain query string; windows_params as dict or JSON string.
+    - kind: function
+      name: format_results
+      args:
+      - name: results
+        type: List[SearchResult]
+      returns: str
+    - kind: function
+      name: create_server
+      args:
+      - name: search_provider
+        type: SearchProvider
+      - name: system
+        type: str
+      - name: tool_name
+        type: str
+        default: _DEFAULT_TOOL_NAME
+      returns: Server
+      description: Lowlevel mcp 2.x Server; lists and answers only tool_name; other names raise MCPError(-32602).
+    - kind: function
+      name: serve
+      args: []
+      returns: None
+      description: 'Async composition root: reads EVERYTHING_SEARCH_TOOL_NAME via resolve_tool_name, real provider over stdio.'
+    - kind: function
+      name: configure_windows_console
+      args: []
+      returns: None
+    - kind: function
+      name: main
+      args: []
+      returns: None
+  - path: src/mcp_server_everything_search/search_interface.py
+    artifacts:
+    - kind: attribute
+      name: SEARCH_TIMEOUT_SECONDS
+      type: float
+      description: Default command timeout (30 s).
+    - kind: class
+      name: SearchResult
+      description: Dataclass returned by every provider.
+    - kind: attribute
+      name: path
+      of: SearchResult
+      type: str
+    - kind: attribute
+      name: filename
+      of: SearchResult
+      type: str
+    - kind: attribute
+      name: extension
+      of: SearchResult
+      type: Optional[str]
+    - kind: attribute
+      name: size
+      of: SearchResult
+      type: Optional[int]
+    - kind: attribute
+      name: created
+      of: SearchResult
+      type: Optional[datetime]
+    - kind: attribute
+      name: modified
+      of: SearchResult
+      type: Optional[datetime]
+    - kind: attribute
+      name: accessed
+      of: SearchResult
+      type: Optional[datetime]
+    - kind: attribute
+      name: attributes
+      of: SearchResult
+      type: Optional[str]
+    - kind: function
+      name: run_command
+      args:
+      - name: cmd
+        type: List[str]
+      - name: timeout
+        type: float
+        default: SEARCH_TIMEOUT_SECONDS
+      returns: subprocess.CompletedProcess[str]
+      description: 'Default command runner: subprocess.run with captured text output; TimeoutExpired -> RuntimeError.'
+    - kind: class
+      name: SearchProvider
+      bases:
+      - abc.ABC
+    - kind: method
+      name: search_files
+      of: SearchProvider
+      args:
+      - name: query
+        type: str
+      - name: max_results
+        type: int
+        default: '100'
+      returns: List[SearchResult]
+    - kind: method
+      name: count_files
+      of: SearchProvider
+      args:
+      - name: query
+        type: str
+      - name: ignore_case
+        type: bool
+        default: 'True'
+      - name: regex_search
+        type: bool
+        default: 'False'
+      - name: existing_files
+        type: bool
+        default: 'True'
+      returns: int
+      description: Raises NotImplementedError; only LinuxSearchProvider supports count_only. Same signature as the Linux override.
+    - kind: method
+      name: get_provider
+      of: SearchProvider
+      args: []
+      returns: SearchProvider
+      description: Classmethod factory keyed on platform.system(); passes EVERYTHING_SDK_PATH to the Windows provider (composition root for the env var).
+    - kind: class
+      name: MacSearchProvider
+      bases:
+      - SearchProvider
+    - kind: method
+      name: __init__
+      of: MacSearchProvider
+      args:
+      - name: run_command
+        type: Callable[[List[str]], subprocess.CompletedProcess[str]]
+        default: run_command
+      returns: None
+    - kind: method
+      name: search_files
+      of: MacSearchProvider
+      args:
+      - name: query
+        type: str
+      - name: max_results
+        type: int
+        default: '100'
+      - name: search_directory
+        type: Optional[str]
+        default: None
+      - name: live_updates
+        type: bool
+        default: 'False'
+      - name: literal_query
+        type: bool
+        default: 'False'
+      - name: interpret_query
+        type: bool
+        default: 'False'
+      returns: List[SearchResult]
+      description: Default `mdfind [-onlyin DIR] -name QUERY`; literal/interpret pass the raw query, which must not start with '-'; search_directory (~ expanded) must exist; live_updates raises ValueError.
+    - kind: class
+      name: LinuxSearchProvider
+      bases:
+      - SearchProvider
+    - kind: method
+      name: __init__
+      of: LinuxSearchProvider
+      args:
+      - name: run_command
+        type: Callable[[List[str]], subprocess.CompletedProcess[str]]
+        default: run_command
+      returns: None
+    - kind: attribute
+      name: locate_cmd
+      of: LinuxSearchProvider
+      type: str
+    - kind: attribute
+      name: locate_type
+      of: LinuxSearchProvider
+      type: str
+    - kind: method
+      name: search_files
+      of: LinuxSearchProvider
+      args:
+      - name: query
+        type: str
+      - name: max_results
+        type: int
+        default: '100'
+      - name: ignore_case
+        type: bool
+        default: 'True'
+      - name: regex_search
+        type: bool
+        default: 'False'
+      - name: existing_files
+        type: bool
+        default: 'True'
+      returns: List[SearchResult]
+      description: Query follows '--' so a leading '-' is searched, not parsed as a locate option.
+    - kind: method
+      name: count_files
+      of: LinuxSearchProvider
+      args:
+      - name: query
+        type: str
+      - name: ignore_case
+        type: bool
+        default: 'True'
+      - name: regex_search
+        type: bool
+        default: 'False'
+      - name: existing_files
+        type: bool
+        default: 'True'
+      returns: int
+      description: Query follows '--' so a leading '-' is searched, not parsed as a locate option.
+    - kind: class
+      name: EverythingBackend
+      bases:
+      - Protocol
+      description: runtime_checkable narrow interface the Windows provider needs from the Everything SDK, so tests can inject a fake.
+    - kind: method
+      name: search_files
+      of: EverythingBackend
+      args:
+      - name: query
+        type: str
+      - name: max_results
+        type: int
+      - name: match_path
+        type: bool
+      - name: match_case
+        type: bool
+      - name: match_whole_word
+        type: bool
+      - name: match_regex
+        type: bool
+      - name: sort_by
+        type: int
+      returns: List[Any]
+      description: Keyword-only. Returns everything_sdk's own result models (pre-existing; not search_interface.SearchResult).
+    - kind: class
+      name: WindowsSearchProvider
+      bases:
+      - SearchProvider
+    - kind: method
+      name: __init__
+      of: WindowsSearchProvider
+      args:
+      - name: everything_sdk
+        type: Optional[EverythingBackend]
+        default: None
+      - name: dll_path
+        type: Optional[str]
+        default: None
+      returns: None
+      description: Injected backend, or load from dll_path; missing/empty dll_path or a non-file raise RuntimeError naming EVERYTHING_SDK_PATH.
+    - kind: attribute
+      name: everything_sdk
+      of: WindowsSearchProvider
+      type: EverythingBackend
+    - kind: method
+      name: search_files
+      of: WindowsSearchProvider
+      args:
+      - name: query
+        type: str
+      - name: max_results
+        type: int
+        default: '100'
+      - name: match_path
+        type: bool
+        default: 'False'
+      - name: match_case
+        type: bool
+        default: 'False'
+      - name: match_whole_word
+        type: bool
+        default: 'False'
+      - name: match_regex
+        type: bool
+        default: 'False'
+      - name: sort_by
+        type: Optional[int]
+        default: None
+      returns: List[SearchResult]
+      description: Normalizes slashes; sort_by=None maps to 1 (Everything name-ascending default) instead of passing None to Everything_SetSort.
+  - path: tests/test_server.py
+    artifacts:
+    - kind: test_function
+      name: test_build_search_tool_windows_uses_platform_schema_and_everything_docs
+    - kind: test_function
+      name: test_build_search_tool_linux_describes_locate
+    - kind: test_function
+      name: test_build_search_tool_darwin_describes_mdfind
+    - kind: test_function
+      name: test_build_search_tool_unknown_platform_says_unknown
+    - kind: test_function
+      name: test_parse_arguments_reads_base_dict_and_windows_params
+    - kind: test_function
+      name: test_parse_arguments_accepts_base_as_json_string
+    - kind: test_function
+      name: test_parse_arguments_treats_non_json_base_string_as_query
+    - kind: test_function
+      name: test_parse_arguments_accepts_windows_params_as_json_string
+    - kind: test_function
+      name: test_parse_arguments_rejects_invalid_windows_params_json
+    - kind: test_function
+      name: test_parse_arguments_rejects_base_of_wrong_type
+    - kind: test_function
+      name: test_parse_arguments_without_query_raises_validation_error
+    - kind: test_function
+      name: test_parse_arguments_reads_mac_and_linux_params_issue_30
+    - kind: test_function
+      name: test_parse_arguments_rejects_invalid_platform_params_json
+    - kind: test_function
+      name: test_format_results_renders_every_field_with_na_for_missing_dates
+    - kind: test_function
+      name: test_format_results_omits_extension_suffix_when_absent
+    - kind: test_function
+      name: test_format_results_joins_multiple_results_with_newline
+    - kind: test_function
+      name: test_format_results_empty_list_is_empty_text
+    - kind: test_function
+      name: test_server_lists_single_search_tool_with_platform_schema
+    - kind: test_function
+      name: test_server_windows_search_passes_windows_params_and_returns_text
+    - kind: test_function
+      name: test_server_windows_search_without_windows_params_uses_defaults
+    - kind: test_function
+      name: test_server_command_line_search_passes_only_query_and_max_results
+    - kind: test_function
+      name: test_server_search_path_follows_system_argument
+    - kind: test_function
+      name: test_server_darwin_search_passes_mac_params_issue_25
+    - kind: test_function
+      name: test_server_linux_search_passes_linux_params_issue_30
+    - kind: test_function
+      name: test_server_linux_count_only_returns_match_count
+    - kind: test_function
+      name: test_server_reports_mac_live_updates_as_tool_error
+    - kind: test_function
+      name: test_server_reports_missing_arguments_as_tool_error
+    - kind: test_function
+      name: test_server_reports_provider_failure_as_tool_error
+    - kind: test_function
+      name: test_server_reports_invalid_arguments_as_tool_error
+    - kind: test_function
+      name: test_server_rejects_unknown_tool_with_invalid_params_error
+    - kind: test_function
+      name: test_server_exposes_no_resources_templates_or_prompts
+    - kind: test_function
+      name: test_configure_windows_console_is_noop_off_windows
+    - kind: test_function
+      name: test_main_exits_with_status_1_when_serve_fails
+    - kind: test_function
+      name: test_serve_runs_platform_provider_over_stdio
+    - kind: test_function
+      name: test_resolve_tool_name_defaults_to_search
+    - kind: test_function
+      name: test_resolve_tool_name_rejects_names_clients_cannot_use
+    - kind: test_function
+      name: test_build_search_tool_uses_given_tool_name
+    - kind: test_function
+      name: test_server_with_custom_tool_name_lists_and_answers_under_that_name
+    - kind: test_function
+      name: test_serve_uses_tool_name_from_environment
+    - kind: test_function
+      name: test_main_exits_with_status_1_for_invalid_tool_name
+  - path: tests/test_package_metadata.py
+    artifacts:
+    - kind: test_function
+      name: test_mcp_requirement_excludes_mcp_1_and_next_major_versions
+    - kind: test_function
+      name: test_mcp_requirement_allows_mcp_2_versions
+  - path: tests/test_search_interface.py
+    artifacts:
+    - kind: test_function
+      name: test_run_command_captures_text_output_and_exit_code
+    - kind: test_function
+      name: test_default_command_timeout_is_30_seconds
+    - kind: test_function
+      name: test_run_command_uses_default_timeout_when_none_given
+    - kind: test_function
+      name: test_run_command_times_out_with_clear_error
+    - kind: test_function
+      name: test_get_provider_returns_platform_provider
+    - kind: test_function
+      name: test_get_provider_unsupported_platform_raises
+    - kind: test_function
+      name: test_count_files_is_unsupported_by_default
+    - kind: test_function
+      name: test_mac_default_search_is_filename_search_limited_to_max_results
+    - kind: test_function
+      name: test_mac_search_directory_scopes_search_issue_25
+    - kind: test_function
+      name: test_mac_search_directory_expands_home
+    - kind: test_function
+      name: test_mac_missing_search_directory_is_rejected
+    - kind: test_function
+      name: test_mac_raw_query_starting_with_dash_is_rejected
+    - kind: test_function
+      name: test_mac_filename_query_starting_with_dash_is_passed_as_name_value
+    - kind: test_function
+      name: test_mac_literal_or_interpret_passes_raw_query
+    - kind: test_function
+      name: test_mac_scoped_literal_query_orders_directory_then_flags
+    - kind: test_function
+      name: test_mac_live_updates_is_rejected_because_mdfind_live_never_exits
+    - kind: test_function
+      name: test_mac_mdfind_failure_raises_with_stderr
+    - kind: test_function
+      name: test_linux_prefers_plocate
+    - kind: test_function
+      name: test_linux_falls_back_to_locate
+    - kind: test_function
+      name: test_linux_without_any_locate_raises_install_hint
+    - kind: test_function
+      name: test_linux_default_search_ignores_case_existing_only_and_limits
+    - kind: test_function
+      name: test_linux_params_map_to_locate_flags_issue_30
+    - kind: test_function
+      name: test_linux_query_starting_with_dash_is_searched_not_parsed_as_option
+    - kind: test_function
+      name: test_linux_regex_uses_long_option_for_mlocate
+    - kind: test_function
+      name: test_linux_count_files_returns_match_count
+    - kind: test_function
+      name: test_linux_count_files_with_unparseable_output_raises
+    - kind: test_function
+      name: test_linux_count_files_missing_database_raises_updatedb_hint
+    - kind: test_function
+      name: test_linux_missing_database_raises_updatedb_hint
+    - kind: test_function
+      name: test_linux_other_failure_raises_with_stderr
+    - kind: test_function
+      name: test_existing_file_result_includes_stat_details
+    - kind: test_function
+      name: test_inaccessible_path_result_has_basic_info_only
+    - kind: test_function
+      name: test_windows_normalizes_slashes_and_forwards_options_to_sdk
+    - kind: test_function
+      name: test_windows_without_sort_by_uses_everything_name_ascending_default
+    - kind: test_function
+      name: test_windows_provider_requires_a_non_empty_sdk_path
+    - kind: test_function
+      name: test_windows_provider_rejects_missing_dll_file
+    - kind: test_function
+      name: test_windows_provider_rejects_a_directory_as_dll_path
+    - kind: test_function
+      name: test_windows_provider_loads_sdk_from_existing_dll_path
+    - kind: test_function
+      name: test_get_provider_passes_everything_sdk_path_to_windows_provider
+  scope: []
+  read:
+  - src/mcp_server_everything_search/platform_search.py
+  - src/mcp_server_everything_search/everything_sdk.py
+  - tests/test_ci_workflow.py
+  - manifests/007-apply-mac-linux-params.manifest.yaml
+  - manifests/008-everything-sdk-robustness.manifest.yaml
+validate:
+- - uv
+  - run
+  - pytest
+  - tests/test_search_interface.py
+  - tests/test_server.py
+  - tests/test_package_metadata.py
+  - tests/test_ci_workflow.py
+  - -q
+outcome:
+  status: completed
+  completed_at: '2026-10-17T17:00:00+08:00'
+  summary: Commands time out after 30 s; locate queries follow '--'; raw mdfind queries cannot start with '-'; search_directory
+    must exist (~ expanded); Windows requires EVERYTHING_SDK_PATH; tool name configurable via EVERYTHING_SEARCH_TOOL_NAME
+    (default 'search').
+  rationale: Borrowed from amcaude afd1b13 (hardening, minus obsolete dependency bumps) and kshin5 7e5aef3 (tool
+    rename, made optional). Superseded 007 because its locked tests pinned the old command lines.
+  agent:
+    model: claude-opus-5-5
+    client: claude-code
+    skills:
+    - maid-planner
+    - maid-evolver
+    - maid-implementer
+    - maid-implementation-review
+  lessons:
+  - lesson_type: test-pattern
+    summary: A test of 'exits on invalid config' can pass for an unrelated reason (pytest stdin unreadable); stub
+      the next step to fail if reached and assert the specific error, then mutation-check the guard.
+    paths:
+    - tests/test_server.py
+    tags:
+    - mutation-testing
+    - false-positive-test
+  - lesson_type: validation-gap
+    summary: Python re '$' matches before a trailing newline; use fullmatch (or \Z) for whole-value validation of
+      env vars.
+    paths:
+    - src/mcp_server_everything_search/server.py
+    tags:
+    - regex
+    - config-validation
+  - lesson_type: process
+    summary: plan revise --stash-implementation refuses unrelated dirty paths; when a sibling lock refresh is part
+      of the same change, pass --allow-sibling-dirty with the reason.
+    paths:
+    - .maid/plan-locks/009-harden-commands-and-tool-name.lock.json
+    tags:
+    - plan-lock
+  review_notes:
+  - source: maid-plan-reviewer
+    severity: ready
+    summary: Approved after fixing a hollow main-exit test and adding a positive Windows dll_path load test, ~ expansion,
+      default timeout wiring, interpret_query dash case, env isolation; six mutation checks caught.
+  - source: maid-implementation-reviewer
+    severity: ready
+    summary: Ready to merge after fullmatch fix for trailing-newline tool names. Release note needed for Windows
+      users relying on the old D:\dev default.
+  validation:
+  - command:
+    - uv
+    - run
+    - pytest
+    - -q
+    status: passed
+    summary: 184 passed, 1 skipped; red evidence revision 3 exit 1.
+  - command:
+    - scripts/maid
+    - verify
+    - --profile
+    - handoff
+    - --summary
+    - --advisory
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --since
+    - 7861aa3
+    status: passed
+    summary: 9/9 gates; only known E310 false positive.
+  - command:
+    - plocate
+    - -i
+    - -e
+    - -l
+    - '2'
+    - --
+    - bashrc
+    status: passed
+    summary: Real plocate 1.1.15 accepts '--'; '-- --database' is searched as a pattern.

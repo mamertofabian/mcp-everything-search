@@ -32,9 +32,21 @@ class PartialResults(List[Any]):
         self.unreadable = unreadable
 
 
-def run_command(cmd: List[str]) -> "subprocess.CompletedProcess[str]":
-    """Run a command and capture its text output (default command runner)."""
-    return subprocess.run(cmd, capture_output=True, text=True)
+SEARCH_TIMEOUT_SECONDS = 30.0
+
+
+def run_command(
+    cmd: List[str], timeout: float = SEARCH_TIMEOUT_SECONDS
+) -> "subprocess.CompletedProcess[str]":
+    """Run a command and capture its text output (default command runner).
+
+    Raises RuntimeError if it does not finish within `timeout` seconds, so a stuck
+    mdfind/locate cannot hang the server.
+    """
+    try:
+        return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        raise RuntimeError(f"{cmd[0]} timed out after {timeout:g} seconds")
 
 
 _LOCATE_INSTALL_HINT = (
@@ -74,7 +86,7 @@ class SearchProvider(abc.ABC):
         elif system == "linux":
             return LinuxSearchProvider()
         elif system == "windows":
-            return WindowsSearchProvider()
+            return WindowsSearchProvider(dll_path=os.environ.get("EVERYTHING_SDK_PATH"))
         else:
             raise NotImplementedError(f"No search provider available for {system}")
 
@@ -122,14 +134,23 @@ class MacSearchProvider(SearchProvider):
                 "live_updates is not supported: mdfind -live never exits, so the search would not return"
             )
 
+        raw_query = literal_query or interpret_query
+        if raw_query and query.lstrip().startswith("-"):
+            raise ValueError(
+                "A literal or interpreted Spotlight query must not start with '-'"
+            )
+
         cmd = ["mdfind"]
         if search_directory:
-            cmd.extend(["-onlyin", search_directory])
+            directory = os.path.expanduser(search_directory)
+            if not os.path.isdir(directory):
+                raise ValueError(f"Search directory does not exist: {search_directory}")
+            cmd.extend(["-onlyin", directory])
         if literal_query:
             cmd.append("-literal")
         if interpret_query:
             cmd.append("-interpret")
-        if literal_query or interpret_query:
+        if raw_query:
             # -literal / -interpret apply to a raw Spotlight query
             cmd.append(query)
         else:
@@ -209,7 +230,8 @@ class LinuxSearchProvider(SearchProvider):
         existing_files: bool = True,
     ) -> List[SearchResult]:
         cmd = self._base_command(ignore_case, regex_search, existing_files)
-        cmd.extend(["-l", str(max_results), query])
+        # "--" ends option parsing so a query starting with "-" is searched, not parsed
+        cmd.extend(["-l", str(max_results), "--", query])
         paths = self._execute(cmd).splitlines()[:max_results]
         return [self._convert_path_to_result(path) for path in paths]
 
@@ -221,7 +243,7 @@ class LinuxSearchProvider(SearchProvider):
         existing_files: bool = True,
     ) -> int:
         cmd = self._base_command(ignore_case, regex_search, existing_files)
-        cmd.extend(["-c", query])
+        cmd.extend(["-c", "--", query])
         output = self._execute(cmd).strip()
         try:
             return int(output)
@@ -252,15 +274,23 @@ class EverythingBackend(Protocol):
 class WindowsSearchProvider(SearchProvider):
     """Windows search implementation using Everything SDK."""
 
-    def __init__(self, everything_sdk: Optional[EverythingBackend] = None) -> None:
-        """Use the given backend, or load Everything64.dll from EVERYTHING_SDK_PATH."""
+    def __init__(
+        self,
+        everything_sdk: Optional[EverythingBackend] = None,
+        dll_path: Optional[str] = None,
+    ) -> None:
+        """Use the given backend, or load Everything64.dll from dll_path (EVERYTHING_SDK_PATH)."""
         if everything_sdk is None:
+            if not dll_path:
+                raise RuntimeError(
+                    "EVERYTHING_SDK_PATH is not set. Set it to the full path of Everything64.dll from the Everything SDK."
+                )
+            if not os.path.isfile(dll_path):
+                raise RuntimeError(
+                    f"EVERYTHING_SDK_PATH points to a file that does not exist: {dll_path}"
+                )
             from .everything_sdk import EverythingSDK
 
-            dll_path = os.getenv(
-                "EVERYTHING_SDK_PATH",
-                "D:\\dev\\tools\\Everything-SDK\\dll\\Everything64.dll",
-            )
             everything_sdk = EverythingSDK(dll_path)
         self.everything_sdk: EverythingBackend = everything_sdk
 

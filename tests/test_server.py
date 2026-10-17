@@ -32,6 +32,11 @@ def anyio_backend() -> str:
     return "asyncio"
 
 
+@pytest.fixture(autouse=True)
+def _no_ambient_tool_name(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("EVERYTHING_SEARCH_TOOL_NAME", raising=False)
+
+
 @pytest.fixture
 def on_platform(monkeypatch: pytest.MonkeyPatch):
     def _set(name: str) -> None:
@@ -629,3 +634,117 @@ async def test_serve_runs_platform_provider_over_stdio(
     )
     assert _text(result) == REPORT_TEXT
     assert provider.calls == [{"query": "report", "max_results": 100}]
+
+
+# --- configurable tool name (EVERYTHING_SEARCH_TOOL_NAME) ---
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [(None, "search"), ("", "search"), ("everything_search", "everything_search")],
+)
+def test_resolve_tool_name_defaults_to_search(value, expected):
+    assert server_module.resolve_tool_name(value) == expected
+
+
+@pytest.mark.parametrize("value", ["bad name", "search!", "x" * 65, "search\n"])
+def test_resolve_tool_name_rejects_names_clients_cannot_use(value):
+    with pytest.raises(ValueError, match="EVERYTHING_SEARCH_TOOL_NAME"):
+        server_module.resolve_tool_name(value)
+
+
+def test_build_search_tool_uses_given_tool_name(on_platform):
+    on_platform("Windows")
+
+    tool = server_module.build_search_tool("windows", tool_name="everything_search")
+
+    assert tool.name == "everything_search"
+
+
+@pytest.mark.anyio
+async def test_server_with_custom_tool_name_lists_and_answers_under_that_name(
+    on_platform,
+):
+    # Arrange
+    on_platform("Windows")
+    provider = FakeSearchProvider(results=[REPORT])
+    server = server_module.create_server(
+        provider, "windows", tool_name="everything_search"
+    )
+
+    # Act
+    async with Client(server) as client:
+        names = [t.name for t in (await client.list_tools()).tools]
+        result = await client.call_tool(
+            "everything_search", {"base": {"query": "report"}}
+        )
+        with pytest.raises(MCPError) as excinfo:
+            await client.call_tool("search", {"base": {"query": "report"}})
+
+    # Assert
+    assert names == ["everything_search"]
+    assert _text(result) == REPORT_TEXT
+    assert excinfo.value.error.code == -32602
+
+
+@pytest.mark.anyio
+async def test_serve_uses_tool_name_from_environment(
+    on_platform, monkeypatch: pytest.MonkeyPatch
+):
+    # Arrange
+    on_platform("Linux")
+    monkeypatch.setenv("EVERYTHING_SEARCH_TOOL_NAME", "everything_search")
+    provider = FakeSearchProvider()
+    monkeypatch.setattr(
+        SearchProvider, "get_provider", classmethod(lambda cls: provider)
+    )
+    names: List[str] = []
+
+    async with create_client_server_memory_streams() as (
+        client_streams,
+        server_streams,
+    ):
+
+        @asynccontextmanager
+        async def in_memory_stdio():
+            yield server_streams
+
+        monkeypatch.setattr(server_module, "stdio_server", in_memory_stdio)
+
+        # Act
+        with anyio.fail_after(10):
+            async with anyio.create_task_group() as tg:
+                tg.start_soon(server_module.serve)
+                async with ClientSession(*client_streams) as session:
+                    await session.initialize()
+                    names = [t.name for t in (await session.list_tools()).tools]
+                tg.cancel_scope.cancel()
+
+    # Assert
+    assert names == ["everything_search"]
+
+
+def test_main_exits_with_status_1_for_invalid_tool_name(
+    monkeypatch: pytest.MonkeyPatch, caplog
+):
+    # Arrange: fail if the server gets as far as opening stdio
+    @asynccontextmanager
+    async def must_not_open_stdio():
+        raise AssertionError("stdio opened despite an invalid tool name")
+        yield  # pragma: no cover
+
+    monkeypatch.setenv("EVERYTHING_SEARCH_TOOL_NAME", "not valid!")
+    monkeypatch.setattr(server_module, "configure_windows_console", lambda: None)
+    monkeypatch.setattr(server_module, "stdio_server", must_not_open_stdio)
+    monkeypatch.setattr(
+        SearchProvider, "get_provider", classmethod(lambda cls: FakeSearchProvider())
+    )
+
+    # Act
+    with pytest.raises(SystemExit) as excinfo:
+        server_module.main()
+
+    # Assert
+    assert excinfo.value.code == 1
+    assert "EVERYTHING_SEARCH_TOOL_NAME" in caplog.text
+    assert "stdio opened" not in caplog.text
