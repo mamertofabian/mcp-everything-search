@@ -7,7 +7,7 @@ import subprocess
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, List, Optional, Protocol, runtime_checkable
+from typing import Any, Callable, Iterable, List, Optional, Protocol, runtime_checkable
 
 
 @dataclass
@@ -22,6 +22,14 @@ class SearchResult:
     modified: Optional[datetime] = None
     accessed: Optional[datetime] = None
     attributes: Optional[str] = None
+
+
+class PartialResults(List[Any]):
+    """Search results where some matches could not be read; `unreadable` counts them."""
+
+    def __init__(self, results: Iterable[Any] = (), unreadable: int = 0) -> None:
+        super().__init__(results)
+        self.unreadable = unreadable
 
 
 def run_command(cmd: List[str]) -> "subprocess.CompletedProcess[str]":

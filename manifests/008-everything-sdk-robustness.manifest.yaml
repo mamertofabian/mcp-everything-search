@@ -1,0 +1,516 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+sequence_number: 8
+goal: Keep Windows search results when single attributes fail and report unreadable results visibly
+type: fix
+created: '2026-10-17T04:32:22Z'
+metadata:
+  tags:
+  - windows
+  - everything-sdk
+  - error-handling
+  - brownfield-coverage
+  issues:
+  - '#14'
+  borrowed_from:
+  - amcaude/mcp-everything-search@584b526
+  - WhizZest/mcp-everything-search@7500f8a
+description: |-
+  Make the Windows Everything SDK wrapper robust and loud about missing data,
+  borrowing from forks: amcaude `devin/1787761236-error-handling` (584b526),
+  WhizZest 7500f8a, with the same idea in s-github-2 a1d703e and gjy1992 4b62e8e.
+  Fixes #14 (one bad attribute dropped the whole result).
+
+  Behavior:
+  - Each timestamp is converted separately; an unrepresentable one becomes None
+    with a logged warning instead of dropping the result.
+  - A result that cannot be read is skipped and counted. If some results are
+    unreadable the SDK returns PartialResults (a list subclass with an
+    `unreadable` count) and format_results appends a visible warning line, so the
+    model and user can tell results are missing (fail-loud; amcaude only logged).
+    If every result is unreadable, a RuntimeError is raised instead of an empty list.
+  - Query failure raises EverythingError when the SDK reports a code, otherwise
+    RuntimeError. Everything_Reset runs in a finally block.
+  - DLL load errors are RuntimeErrors naming EVERYTHING_SDK_PATH; a DLL without
+    the SDK functions is rejected; off Windows the default loader reports that
+    the SDK is Windows-only.
+  - print-to-stderr debug lines are replaced by the module logger.
+
+  Brownfield coverage: everything_sdk.py had no manifest/tests. All public
+  artifacts, including the SDK constants, are declared; a characterization test
+  pins every constant to the Everything SDK header values. A loader parameter
+  lets tests inject a fake DLL, so the wrapper is tested on any OS. The file is
+  added to CI MAID_COVERED_PATHS; its pre-existing ruff/pyright errors are fixed.
+
+  PartialResults is added to search_interface.py (chain merge with 007; additive).
+  server.py is in scope only for the format_results warning line (no signature
+  change). Test files owned by 007 are not in this manifest's validate list so a
+  later supersede of 007 does not cascade lock tampering into 008.
+
+  Out of scope: the 260-character path buffer (long paths are truncated).
+
+  Residual risk: ctypes argtypes/restype against the real Everything64.dll cannot
+  be proven by the fake; that code is only reformatted. On CI's windows-latest
+  runner a win32-only test exercises the real ctypes.WinDLL loader and its
+  OSError translation. The end-to-end warning test relies on
+  WindowsSearchProvider.search_files passing SDK results through unchanged.
+temptations:
+- risk: Catching every per-result exception and silently returning fewer results.
+  instead: Count unreadable results, return PartialResults, and surface a warning line in the tool output.
+- risk: Testing the wrapper only on Windows or by mocking ctypes internals.
+  instead: Inject FakeEverythingDLL through the loader parameter and assert on returned results and recorded calls.
+- risk: Changing timestamp output format or SearchResult fields while refactoring.
+  instead: Keep ISO strings and existing fields; tests pin field values.
+files:
+  create:
+  - path: tests/test_everything_sdk.py
+    artifacts:
+    - kind: test_function
+      name: test_sdk_constants_match_everything_sdk_header
+    - kind: test_function
+      name: test_windows_filetime_constants_describe_the_1601_epoch
+    - kind: test_function
+      name: test_search_result_optional_fields_default_to_none
+    - kind: test_function
+      name: test_everything_error_carries_code_and_message
+    - kind: test_function
+      name: test_dll_load_failure_names_everything_sdk_path
+    - kind: test_function
+      name: test_dll_without_everything_functions_is_rejected
+    - kind: test_function
+      name: test_default_loader_off_windows_reports_windows_only
+    - kind: test_function
+      name: test_default_loader_on_windows_reports_missing_dll_with_sdk_path_hint
+    - kind: test_function
+      name: test_loaded_dll_is_exposed_and_configured
+    - kind: test_function
+      name: test_search_configures_everything_and_returns_results
+    - kind: test_function
+      name: test_search_requests_the_default_result_fields
+    - kind: test_function
+      name: test_search_with_no_matches_returns_empty_list
+    - kind: test_function
+      name: test_search_returns_at_most_max_results
+    - kind: test_function
+      name: test_unrepresentable_timestamp_becomes_none_and_keeps_result
+    - kind: test_function
+      name: test_unreadable_results_are_returned_as_partial_results
+    - kind: test_function
+      name: test_complete_results_are_not_marked_partial
+    - kind: test_function
+      name: test_all_results_unreadable_raises
+    - kind: test_function
+      name: test_everything_is_reset_after_a_successful_search
+    - kind: test_function
+      name: test_result_with_null_filename_counts_as_unreadable
+    - kind: test_function
+      name: test_query_failure_raises_everything_error
+    - kind: test_function
+      name: test_query_failure_without_error_code_raises_runtime_error
+    - kind: test_function
+      name: test_everything_is_reset_even_when_the_query_fails
+    - kind: test_function
+      name: test_search_does_not_print_debug_output
+    - kind: test_function
+      name: test_module_uses_logging_for_diagnostics
+    - kind: test_function
+      name: test_partial_results_behave_like_a_list_with_an_unreadable_count
+    - kind: test_function
+      name: test_format_results_warns_when_results_are_partial
+    - kind: test_function
+      name: test_windows_provider_surfaces_unreadable_results_in_tool_output
+  edit:
+  - path: src/mcp_server_everything_search/everything_sdk.py
+    artifacts:
+    - kind: attribute
+      name: EVERYTHING_OK
+      type: int
+    - kind: attribute
+      name: EVERYTHING_ERROR_MEMORY
+      type: int
+    - kind: attribute
+      name: EVERYTHING_ERROR_IPC
+      type: int
+    - kind: attribute
+      name: EVERYTHING_ERROR_REGISTERCLASSEX
+      type: int
+    - kind: attribute
+      name: EVERYTHING_ERROR_CREATEWINDOW
+      type: int
+    - kind: attribute
+      name: EVERYTHING_ERROR_CREATETHREAD
+      type: int
+    - kind: attribute
+      name: EVERYTHING_ERROR_INVALIDINDEX
+      type: int
+    - kind: attribute
+      name: EVERYTHING_ERROR_INVALIDCALL
+      type: int
+    - kind: attribute
+      name: EVERYTHING_REQUEST_FILE_NAME
+      type: int
+    - kind: attribute
+      name: EVERYTHING_REQUEST_PATH
+      type: int
+    - kind: attribute
+      name: EVERYTHING_REQUEST_FULL_PATH_AND_FILE_NAME
+      type: int
+    - kind: attribute
+      name: EVERYTHING_REQUEST_EXTENSION
+      type: int
+    - kind: attribute
+      name: EVERYTHING_REQUEST_SIZE
+      type: int
+    - kind: attribute
+      name: EVERYTHING_REQUEST_DATE_CREATED
+      type: int
+    - kind: attribute
+      name: EVERYTHING_REQUEST_DATE_MODIFIED
+      type: int
+    - kind: attribute
+      name: EVERYTHING_REQUEST_DATE_ACCESSED
+      type: int
+    - kind: attribute
+      name: EVERYTHING_REQUEST_ATTRIBUTES
+      type: int
+    - kind: attribute
+      name: EVERYTHING_REQUEST_FILE_LIST_FILE_NAME
+      type: int
+    - kind: attribute
+      name: EVERYTHING_REQUEST_RUN_COUNT
+      type: int
+    - kind: attribute
+      name: EVERYTHING_REQUEST_DATE_RUN
+      type: int
+    - kind: attribute
+      name: EVERYTHING_REQUEST_DATE_RECENTLY_CHANGED
+      type: int
+    - kind: attribute
+      name: EVERYTHING_REQUEST_HIGHLIGHTED_FILE_NAME
+      type: int
+    - kind: attribute
+      name: EVERYTHING_REQUEST_HIGHLIGHTED_PATH
+      type: int
+    - kind: attribute
+      name: EVERYTHING_REQUEST_HIGHLIGHTED_FULL_PATH_AND_FILE_NAME
+      type: int
+    - kind: attribute
+      name: EVERYTHING_SORT_NAME_ASCENDING
+      type: int
+    - kind: attribute
+      name: EVERYTHING_SORT_NAME_DESCENDING
+      type: int
+    - kind: attribute
+      name: EVERYTHING_SORT_PATH_ASCENDING
+      type: int
+    - kind: attribute
+      name: EVERYTHING_SORT_PATH_DESCENDING
+      type: int
+    - kind: attribute
+      name: EVERYTHING_SORT_SIZE_ASCENDING
+      type: int
+    - kind: attribute
+      name: EVERYTHING_SORT_SIZE_DESCENDING
+      type: int
+    - kind: attribute
+      name: EVERYTHING_SORT_EXTENSION_ASCENDING
+      type: int
+    - kind: attribute
+      name: EVERYTHING_SORT_EXTENSION_DESCENDING
+      type: int
+    - kind: attribute
+      name: EVERYTHING_SORT_TYPE_NAME_ASCENDING
+      type: int
+    - kind: attribute
+      name: EVERYTHING_SORT_TYPE_NAME_DESCENDING
+      type: int
+    - kind: attribute
+      name: EVERYTHING_SORT_DATE_CREATED_ASCENDING
+      type: int
+    - kind: attribute
+      name: EVERYTHING_SORT_DATE_CREATED_DESCENDING
+      type: int
+    - kind: attribute
+      name: EVERYTHING_SORT_DATE_MODIFIED_ASCENDING
+      type: int
+    - kind: attribute
+      name: EVERYTHING_SORT_DATE_MODIFIED_DESCENDING
+      type: int
+    - kind: attribute
+      name: EVERYTHING_SORT_ATTRIBUTES_ASCENDING
+      type: int
+    - kind: attribute
+      name: EVERYTHING_SORT_ATTRIBUTES_DESCENDING
+      type: int
+    - kind: attribute
+      name: EVERYTHING_SORT_FILE_LIST_FILENAME_ASCENDING
+      type: int
+    - kind: attribute
+      name: EVERYTHING_SORT_FILE_LIST_FILENAME_DESCENDING
+      type: int
+    - kind: attribute
+      name: EVERYTHING_SORT_RUN_COUNT_ASCENDING
+      type: int
+    - kind: attribute
+      name: EVERYTHING_SORT_RUN_COUNT_DESCENDING
+      type: int
+    - kind: attribute
+      name: EVERYTHING_SORT_DATE_RECENTLY_CHANGED_ASCENDING
+      type: int
+    - kind: attribute
+      name: EVERYTHING_SORT_DATE_RECENTLY_CHANGED_DESCENDING
+      type: int
+    - kind: attribute
+      name: EVERYTHING_SORT_DATE_ACCESSED_ASCENDING
+      type: int
+    - kind: attribute
+      name: EVERYTHING_SORT_DATE_ACCESSED_DESCENDING
+      type: int
+    - kind: attribute
+      name: EVERYTHING_SORT_DATE_RUN_ASCENDING
+      type: int
+    - kind: attribute
+      name: EVERYTHING_SORT_DATE_RUN_DESCENDING
+      type: int
+    - kind: attribute
+      name: WINDOWS_TICKS
+      type: int
+    - kind: attribute
+      name: WINDOWS_EPOCH
+      type: datetime.datetime
+    - kind: attribute
+      name: POSIX_EPOCH
+      type: datetime.datetime
+    - kind: attribute
+      name: EPOCH_DIFF
+      type: float
+    - kind: attribute
+      name: WINDOWS_TICKS_TO_POSIX_EPOCH
+      type: float
+    - kind: attribute
+      name: logger
+      type: logging.Logger
+      description: Module logger; replaces print-to-stderr debug output.
+    - kind: class
+      name: SearchResult
+      bases:
+      - BaseModel
+    - kind: attribute
+      name: path
+      of: SearchResult
+      type: str
+    - kind: attribute
+      name: filename
+      of: SearchResult
+      type: str
+    - kind: attribute
+      name: extension
+      of: SearchResult
+      type: Optional[str]
+    - kind: attribute
+      name: size
+      of: SearchResult
+      type: int
+    - kind: attribute
+      name: created
+      of: SearchResult
+      type: Optional[str]
+    - kind: attribute
+      name: modified
+      of: SearchResult
+      type: Optional[str]
+    - kind: attribute
+      name: accessed
+      of: SearchResult
+      type: Optional[str]
+    - kind: attribute
+      name: attributes
+      of: SearchResult
+      type: Optional[int]
+    - kind: attribute
+      name: run_count
+      of: SearchResult
+      type: Optional[int]
+    - kind: attribute
+      name: highlighted_filename
+      of: SearchResult
+      type: Optional[str]
+    - kind: attribute
+      name: highlighted_path
+      of: SearchResult
+      type: Optional[str]
+    - kind: class
+      name: EverythingError
+      bases:
+      - Exception
+    - kind: method
+      name: __init__
+      of: EverythingError
+      args:
+      - name: error_code
+        type: int
+      returns: None
+    - kind: attribute
+      name: error_code
+      of: EverythingError
+      type: int
+    - kind: class
+      name: EverythingSDK
+    - kind: method
+      name: __init__
+      of: EverythingSDK
+      args:
+      - name: dll_path
+        type: str
+      - name: loader
+        type: Callable[[str], Any]
+        default: _load_windll
+      returns: None
+      description: Loader is injectable for tests; default ctypes.WinDLL raises RuntimeError off Windows. OSError -> RuntimeError naming EVERYTHING_SDK_PATH; missing SDK functions -> RuntimeError.
+    - kind: attribute
+      name: dll
+      of: EverythingSDK
+      type: Any
+    - kind: method
+      name: search_files
+      of: EverythingSDK
+      args:
+      - name: query
+        type: str
+      - name: max_results
+        type: int
+        default: '100'
+      - name: match_path
+        type: bool
+        default: 'False'
+      - name: match_case
+        type: bool
+        default: 'False'
+      - name: match_whole_word
+        type: bool
+        default: 'False'
+      - name: match_regex
+        type: bool
+        default: 'False'
+      - name: sort_by
+        type: int
+        default: EVERYTHING_SORT_NAME_ASCENDING
+      - name: request_flags
+        type: Optional[int]
+        default: None
+      returns: List[SearchResult]
+      description: Per-timestamp conversion failures become None; unreadable results are skipped and reported via PartialResults; all unreadable raises RuntimeError; Everything_Reset always runs.
+  - path: src/mcp_server_everything_search/search_interface.py
+    artifacts:
+    - kind: class
+      name: PartialResults
+      bases:
+      - List[Any]
+      description: List of results plus the number of matches that could not be read.
+    - kind: method
+      name: __init__
+      of: PartialResults
+      args:
+      - name: results
+        type: Iterable[Any]
+        default: ()
+      - name: unreadable
+        type: int
+        default: '0'
+      returns: None
+    - kind: attribute
+      name: unreadable
+      of: PartialResults
+      type: int
+  scope:
+  - path: src/mcp_server_everything_search/server.py
+    reason: format_results appends a warning for PartialResults; no signature change.
+  - path: .github/workflows/ci.yml
+    reason: Add everything_sdk.py to MAID_COVERED_PATHS.
+  read:
+  - manifests/007-apply-mac-linux-params.manifest.yaml
+  - tests/test_ci_workflow.py
+validate:
+- - uv
+  - run
+  - pytest
+  - tests/test_everything_sdk.py
+  - tests/test_ci_workflow.py
+  - -q
+outcome:
+  status: completed
+  completed_at: '2026-10-17T15:40:00+08:00'
+  summary: Windows results survive single bad attributes (#14); unreadable results are counted and shown as a warning
+    in the tool output; DLL errors name EVERYTHING_SDK_PATH; everything_sdk.py fully covered and in CI quality checks.
+  rationale: Borrowed from forks amcaude (584b526) and WhizZest (7500f8a); surfaced partial failures to the user
+    instead of only logging them, per fail-loud policy.
+  agent:
+    model: claude-opus-5-5
+    client: claude-code
+    skills:
+    - maid-planner
+    - maid-implementer
+    - maid-implementation-review
+  lessons:
+  - lesson_type: test-pattern
+    summary: Wrap a ctypes DLL behind an injectable loader and drive it with a fake DLL object whose functions accept
+      argtypes/restype, so Windows-only code is tested on any OS.
+    paths:
+    - tests/test_everything_sdk.py
+    tags:
+    - ctypes
+    - windows
+  - lesson_type: test-pattern
+    summary: When a feature spans layers (SDK partial results -> provider -> formatter), add one end-to-end test
+      through public APIs so a later refactor of the middle layer cannot silently drop it.
+    paths:
+    - tests/test_everything_sdk.py
+    tags:
+    - end-to-end
+  review_notes:
+  - source: maid-plan-reviewer
+    severity: ready
+    summary: Approved after adding end-to-end warning test, reset on all paths, zero-match test, full field/flag
+      pinning, win32 real-loader test, stdout check and NULL-filename case.
+  - source: maid-implementation-reviewer
+    severity: ready
+    summary: 'Ready to merge; behavior preserved, no import cycle, MCP stdio safe. Applied advisory: exc_info on
+      per-result warnings.'
+  validation:
+  - command:
+    - uv
+    - run
+    - pytest
+    - -q
+    status: passed
+    summary: 158 passed, 1 skipped (win32-only loader test); red evidence exit 1 (22 failed before implementation).
+  - command:
+    - scripts/maid
+    - verify
+    - --profile
+    - handoff
+    - --summary
+    - --advisory
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --since
+    - 446dd0f
+    status: passed
+    summary: 9/9 gates; only the known E310 false positive on SearchProvider.count_files.
+  - command:
+    - uv
+    - run
+    - pyright
+    - src/mcp_server_everything_search/everything_sdk.py
+    - src/mcp_server_everything_search/platform_search.py
+    - src/mcp_server_everything_search/search_interface.py
+    - src/mcp_server_everything_search/server.py
+    - tests
+    status: passed
+    summary: 0 errors; ruff check/format clean on all CI covered paths.

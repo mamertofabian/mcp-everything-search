@@ -24,7 +24,7 @@ from mcp.types import (
 from pydantic import BaseModel
 
 from .platform_search import UnifiedSearchQuery, WindowsSpecificParams
-from .search_interface import SearchProvider, SearchResult
+from .search_interface import PartialResults, SearchProvider, SearchResult
 
 _SEARCH_TOOL_NAME = "search"
 
@@ -225,8 +225,8 @@ def parse_search_arguments(arguments: Optional[Dict[str, Any]]) -> UnifiedSearch
 
 
 def format_results(results: List[SearchResult]) -> str:
-    """Render search results as the tool's text output."""
-    return "\n".join(
+    """Render search results as the tool's text output, warning about unreadable matches."""
+    text = "\n".join(
         [
             f"Path: {r.path}\n"
             f"Filename: {r.filename}"
@@ -238,6 +238,12 @@ def format_results(results: List[SearchResult]) -> str:
             for r in results
         ]
     )
+    if isinstance(results, PartialResults) and results.unreadable:
+        text += (
+            f"\nWarning: {results.unreadable} matching result(s) could not be read and were omitted. "
+            "See the server log."
+        )
+    return text
 
 
 def _search_text(

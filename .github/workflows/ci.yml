@@ -40,6 +40,7 @@ jobs:
       # Source files covered by active MAID manifests, plus tests.
       # tests/test_ci_workflow.py fails if a covered file is missing here.
       MAID_COVERED_PATHS: >-
+        src/mcp_server_everything_search/everything_sdk.py
         src/mcp_server_everything_search/platform_search.py
         src/mcp_server_everything_search/search_interface.py
         src/mcp_server_everything_search/server.py

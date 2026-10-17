@@ -1,0 +1,1030 @@
+{
+  "manifest_path": "manifests/008-everything-sdk-robustness.manifest.yaml",
+  "manifest_hash": "sha256-contract:9efce8f6255a063a5d0fa663ae801570ab0643a7fb59645af829d2f6012b9182",
+  "test_hashes": {
+    "tests/test_ci_workflow.py": "sha256-pyast:v2:d1f9907d109a0a5973449817cbff6d0ffb9139841ba191c5892185b0d97c683c",
+    "tests/test_everything_sdk.py": "sha256-pyast:v2:26e66dba90f41fad46353d0439d27c806a25c64f1b91ef25a86838c84f955c02"
+  },
+  "created_at": "2026-10-17T04:32:21.356907+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:765568799993b6a5bebe0ef29633e47083080210eb04beff06c619c091017f15",
+      "prior_test_hashes": {
+        "tests/test_ci_workflow.py": "sha256-pyast:v2:d1f9907d109a0a5973449817cbff6d0ffb9139841ba191c5892185b0d97c683c",
+        "tests/test_everything_sdk.py": "sha256-pyast:v2:26e66dba90f41fad46353d0439d27c806a25c64f1b91ef25a86838c84f955c02"
+      },
+      "revised_at": "2026-10-17T04:32:22.652081+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/008-everything-sdk-robustness.manifest.yaml -> manifests/008-everything-sdk-robustness.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-17T04:32:22.181834+00:00",
+    "commands": [
+      {
+        "command": "uv run pytest tests/test_everything_sdk.py tests/test_ci_workflow.py -q",
+        "exit_code": 1,
+        "output_tail": "FAILED tests/test_everything_sdk.py::test_loaded_dll_is_exposed_and_configured\nFAILED tests/test_everything_sdk.py::test_search_configures_everything_and_returns_results\nFAILED tests/test_everything_sdk.py::test_search_requests_the_default_result_fields\nFAILED tests/test_everything_sdk.py::test_search_with_no_matches_returns_empty_list\nFAILED tests/test_everything_sdk.py::test_search_returns_at_most_max_results\nFAILED tests/test_everything_sdk.py::test_unrepresentable_timestamp_becomes_none_and_keeps_result\nFAILED tests/test_everything_sdk.py::test_unreadable_results_are_returned_as_partial_results\nFAILED tests/test_everything_sdk.py::test_complete_results_are_not_marked_partial\nFAILED tests/test_everything_sdk.py::test_all_results_unreadable_raises - Typ...\nFAILED tests/test_everything_sdk.py::test_everything_is_reset_after_a_successful_search\nFAILED tests/test_everything_sdk.py::test_result_with_null_filename_counts_as_unreadable\nFAILED tests/test_everything_sdk.py::test_query_failure_raises_everything_error\nFAILED tests/test_everything_sdk.py::test_query_failure_without_error_code_raises_runtime_error\nFAILED tests/test_everything_sdk.py::test_everything_is_reset_even_when_the_query_fails\nFAILED tests/test_everything_sdk.py::test_search_does_not_print_debug_output\nFAILED tests/test_everything_sdk.py::test_module_uses_logging_for_diagnostics\nFAILED tests/test_everything_sdk.py::test_partial_results_behave_like_a_list_with_an_unreadable_count\nFAILED tests/test_everything_sdk.py::test_format_results_warns_when_results_are_partial\nFAILED tests/test_everything_sdk.py::test_windows_provider_surfaces_unreadable_results_in_tool_output\n22 failed, 16 passed, 1 skipped in 0.59s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": {
+    "model": "claude-opus-5-5",
+    "client": "claude-code",
+    "skills": [
+      "maid-planner"
+    ],
+    "source": "flags"
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EPOCH_DIFF",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EPOCH_DIFF:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EPOCH_DIFF:type=float",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_ERROR_CREATETHREAD",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_ERROR_CREATETHREAD:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_ERROR_CREATETHREAD:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_ERROR_CREATEWINDOW",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_ERROR_CREATEWINDOW:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_ERROR_CREATEWINDOW:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_ERROR_INVALIDCALL",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_ERROR_INVALIDCALL:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_ERROR_INVALIDCALL:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_ERROR_INVALIDINDEX",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_ERROR_INVALIDINDEX:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_ERROR_INVALIDINDEX:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_ERROR_IPC",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_ERROR_IPC:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_ERROR_IPC:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_ERROR_MEMORY",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_ERROR_MEMORY:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_ERROR_MEMORY:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_ERROR_REGISTERCLASSEX",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_ERROR_REGISTERCLASSEX:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_ERROR_REGISTERCLASSEX:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_OK",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_OK:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_OK:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_ATTRIBUTES",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_ATTRIBUTES:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_ATTRIBUTES:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_DATE_ACCESSED",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_DATE_ACCESSED:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_DATE_ACCESSED:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_DATE_CREATED",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_DATE_CREATED:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_DATE_CREATED:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_DATE_MODIFIED",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_DATE_MODIFIED:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_DATE_MODIFIED:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_DATE_RECENTLY_CHANGED",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_DATE_RECENTLY_CHANGED:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_DATE_RECENTLY_CHANGED:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_DATE_RUN",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_DATE_RUN:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_DATE_RUN:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_EXTENSION",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_EXTENSION:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_EXTENSION:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_FILE_LIST_FILE_NAME",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_FILE_LIST_FILE_NAME:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_FILE_LIST_FILE_NAME:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_FILE_NAME",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_FILE_NAME:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_FILE_NAME:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_FULL_PATH_AND_FILE_NAME",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_FULL_PATH_AND_FILE_NAME:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_FULL_PATH_AND_FILE_NAME:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_HIGHLIGHTED_FILE_NAME",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_HIGHLIGHTED_FILE_NAME:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_HIGHLIGHTED_FILE_NAME:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_HIGHLIGHTED_FULL_PATH_AND_FILE_NAME",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_HIGHLIGHTED_FULL_PATH_AND_FILE_NAME:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_HIGHLIGHTED_FULL_PATH_AND_FILE_NAME:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_HIGHLIGHTED_PATH",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_HIGHLIGHTED_PATH:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_HIGHLIGHTED_PATH:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_PATH",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_PATH:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_PATH:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_RUN_COUNT",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_RUN_COUNT:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_RUN_COUNT:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_SIZE",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_SIZE:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_REQUEST_SIZE:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_ATTRIBUTES_ASCENDING",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_ATTRIBUTES_ASCENDING:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_ATTRIBUTES_ASCENDING:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_ATTRIBUTES_DESCENDING",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_ATTRIBUTES_DESCENDING:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_ATTRIBUTES_DESCENDING:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_DATE_ACCESSED_ASCENDING",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_DATE_ACCESSED_ASCENDING:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_DATE_ACCESSED_ASCENDING:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_DATE_ACCESSED_DESCENDING",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_DATE_ACCESSED_DESCENDING:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_DATE_ACCESSED_DESCENDING:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_DATE_CREATED_ASCENDING",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_DATE_CREATED_ASCENDING:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_DATE_CREATED_ASCENDING:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_DATE_CREATED_DESCENDING",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_DATE_CREATED_DESCENDING:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_DATE_CREATED_DESCENDING:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_DATE_MODIFIED_ASCENDING",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_DATE_MODIFIED_ASCENDING:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_DATE_MODIFIED_ASCENDING:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_DATE_MODIFIED_DESCENDING",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_DATE_MODIFIED_DESCENDING:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_DATE_MODIFIED_DESCENDING:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_DATE_RECENTLY_CHANGED_ASCENDING",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_DATE_RECENTLY_CHANGED_ASCENDING:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_DATE_RECENTLY_CHANGED_ASCENDING:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_DATE_RECENTLY_CHANGED_DESCENDING",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_DATE_RECENTLY_CHANGED_DESCENDING:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_DATE_RECENTLY_CHANGED_DESCENDING:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_DATE_RUN_ASCENDING",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_DATE_RUN_ASCENDING:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_DATE_RUN_ASCENDING:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_DATE_RUN_DESCENDING",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_DATE_RUN_DESCENDING:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_DATE_RUN_DESCENDING:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_EXTENSION_ASCENDING",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_EXTENSION_ASCENDING:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_EXTENSION_ASCENDING:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_EXTENSION_DESCENDING",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_EXTENSION_DESCENDING:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_EXTENSION_DESCENDING:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_FILE_LIST_FILENAME_ASCENDING",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_FILE_LIST_FILENAME_ASCENDING:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_FILE_LIST_FILENAME_ASCENDING:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_FILE_LIST_FILENAME_DESCENDING",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_FILE_LIST_FILENAME_DESCENDING:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_FILE_LIST_FILENAME_DESCENDING:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_NAME_ASCENDING",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_NAME_ASCENDING:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_NAME_ASCENDING:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_NAME_DESCENDING",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_NAME_DESCENDING:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_NAME_DESCENDING:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_PATH_ASCENDING",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_PATH_ASCENDING:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_PATH_ASCENDING:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_PATH_DESCENDING",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_PATH_DESCENDING:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_PATH_DESCENDING:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_RUN_COUNT_ASCENDING",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_RUN_COUNT_ASCENDING:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_RUN_COUNT_ASCENDING:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_RUN_COUNT_DESCENDING",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_RUN_COUNT_DESCENDING:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_RUN_COUNT_DESCENDING:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_SIZE_ASCENDING",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_SIZE_ASCENDING:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_SIZE_ASCENDING:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_SIZE_DESCENDING",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_SIZE_DESCENDING:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_SIZE_DESCENDING:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_TYPE_NAME_ASCENDING",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_TYPE_NAME_ASCENDING:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_TYPE_NAME_ASCENDING:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_TYPE_NAME_DESCENDING",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_TYPE_NAME_DESCENDING:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EVERYTHING_SORT_TYPE_NAME_DESCENDING:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EverythingError.error_code",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EverythingError.error_code:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EverythingError.error_code:of=EverythingError",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EverythingError.error_code:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EverythingSDK.dll",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EverythingSDK.dll:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EverythingSDK.dll:of=EverythingSDK",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:EverythingSDK.dll:type=Any",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:POSIX_EPOCH",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:POSIX_EPOCH:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:POSIX_EPOCH:type=datetime.datetime",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.accessed",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.accessed:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.accessed:of=SearchResult",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.accessed:type=Optional[str]",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.attributes",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.attributes:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.attributes:of=SearchResult",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.attributes:type=Optional[int]",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.created",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.created:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.created:of=SearchResult",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.created:type=Optional[str]",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.extension",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.extension:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.extension:of=SearchResult",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.extension:type=Optional[str]",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.filename",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.filename:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.filename:of=SearchResult",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.filename:type=str",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.highlighted_filename",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.highlighted_filename:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.highlighted_filename:of=SearchResult",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.highlighted_filename:type=Optional[str]",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.highlighted_path",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.highlighted_path:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.highlighted_path:of=SearchResult",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.highlighted_path:type=Optional[str]",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.modified",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.modified:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.modified:of=SearchResult",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.modified:type=Optional[str]",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.path",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.path:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.path:of=SearchResult",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.path:type=str",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.run_count",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.run_count:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.run_count:of=SearchResult",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.run_count:type=Optional[int]",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.size",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.size:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.size:of=SearchResult",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:SearchResult.size:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:WINDOWS_EPOCH",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:WINDOWS_EPOCH:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:WINDOWS_EPOCH:type=datetime.datetime",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:WINDOWS_TICKS",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:WINDOWS_TICKS:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:WINDOWS_TICKS:type=int",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:WINDOWS_TICKS_TO_POSIX_EPOCH",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:WINDOWS_TICKS_TO_POSIX_EPOCH:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:WINDOWS_TICKS_TO_POSIX_EPOCH:type=float",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:logger",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:logger:kind=attribute",
+      "src/mcp_server_everything_search/everything_sdk.py:attribute:logger:type=logging.Logger",
+      "src/mcp_server_everything_search/everything_sdk.py:class:EverythingError",
+      "src/mcp_server_everything_search/everything_sdk.py:class:EverythingError:base=Exception",
+      "src/mcp_server_everything_search/everything_sdk.py:class:EverythingError:kind=class",
+      "src/mcp_server_everything_search/everything_sdk.py:class:EverythingSDK",
+      "src/mcp_server_everything_search/everything_sdk.py:class:EverythingSDK:kind=class",
+      "src/mcp_server_everything_search/everything_sdk.py:class:SearchResult",
+      "src/mcp_server_everything_search/everything_sdk.py:class:SearchResult:base=BaseModel",
+      "src/mcp_server_everything_search/everything_sdk.py:class:SearchResult:kind=class",
+      "src/mcp_server_everything_search/everything_sdk.py:method:EverythingError.__init__",
+      "src/mcp_server_everything_search/everything_sdk.py:method:EverythingError.__init__:arg=error_code:type=int:default=None",
+      "src/mcp_server_everything_search/everything_sdk.py:method:EverythingError.__init__:kind=method",
+      "src/mcp_server_everything_search/everything_sdk.py:method:EverythingError.__init__:of=EverythingError",
+      "src/mcp_server_everything_search/everything_sdk.py:method:EverythingError.__init__:returns=None",
+      "src/mcp_server_everything_search/everything_sdk.py:method:EverythingSDK.__init__",
+      "src/mcp_server_everything_search/everything_sdk.py:method:EverythingSDK.__init__:arg=dll_path:type=str:default=None",
+      "src/mcp_server_everything_search/everything_sdk.py:method:EverythingSDK.__init__:arg=loader:type=Callable[[str], Any]:default=_load_windll",
+      "src/mcp_server_everything_search/everything_sdk.py:method:EverythingSDK.__init__:kind=method",
+      "src/mcp_server_everything_search/everything_sdk.py:method:EverythingSDK.__init__:of=EverythingSDK",
+      "src/mcp_server_everything_search/everything_sdk.py:method:EverythingSDK.__init__:returns=None",
+      "src/mcp_server_everything_search/everything_sdk.py:method:EverythingSDK.search_files",
+      "src/mcp_server_everything_search/everything_sdk.py:method:EverythingSDK.search_files:arg=match_case:type=bool:default=False",
+      "src/mcp_server_everything_search/everything_sdk.py:method:EverythingSDK.search_files:arg=match_path:type=bool:default=False",
+      "src/mcp_server_everything_search/everything_sdk.py:method:EverythingSDK.search_files:arg=match_regex:type=bool:default=False",
+      "src/mcp_server_everything_search/everything_sdk.py:method:EverythingSDK.search_files:arg=match_whole_word:type=bool:default=False",
+      "src/mcp_server_everything_search/everything_sdk.py:method:EverythingSDK.search_files:arg=max_results:type=int:default=100",
+      "src/mcp_server_everything_search/everything_sdk.py:method:EverythingSDK.search_files:arg=query:type=str:default=None",
+      "src/mcp_server_everything_search/everything_sdk.py:method:EverythingSDK.search_files:arg=request_flags:type=Optional[int]:default=None",
+      "src/mcp_server_everything_search/everything_sdk.py:method:EverythingSDK.search_files:arg=sort_by:type=int:default=EVERYTHING_SORT_NAME_ASCENDING",
+      "src/mcp_server_everything_search/everything_sdk.py:method:EverythingSDK.search_files:kind=method",
+      "src/mcp_server_everything_search/everything_sdk.py:method:EverythingSDK.search_files:of=EverythingSDK",
+      "src/mcp_server_everything_search/everything_sdk.py:method:EverythingSDK.search_files:returns=List[SearchResult]",
+      "src/mcp_server_everything_search/search_interface.py:attribute:PartialResults.unreadable",
+      "src/mcp_server_everything_search/search_interface.py:attribute:PartialResults.unreadable:kind=attribute",
+      "src/mcp_server_everything_search/search_interface.py:attribute:PartialResults.unreadable:of=PartialResults",
+      "src/mcp_server_everything_search/search_interface.py:attribute:PartialResults.unreadable:type=int",
+      "src/mcp_server_everything_search/search_interface.py:class:PartialResults",
+      "src/mcp_server_everything_search/search_interface.py:class:PartialResults:base=List[Any]",
+      "src/mcp_server_everything_search/search_interface.py:class:PartialResults:kind=class",
+      "src/mcp_server_everything_search/search_interface.py:method:PartialResults.__init__",
+      "src/mcp_server_everything_search/search_interface.py:method:PartialResults.__init__:arg=results:type=Iterable[Any]:default=()",
+      "src/mcp_server_everything_search/search_interface.py:method:PartialResults.__init__:arg=unreadable:type=int:default=0",
+      "src/mcp_server_everything_search/search_interface.py:method:PartialResults.__init__:kind=method",
+      "src/mcp_server_everything_search/search_interface.py:method:PartialResults.__init__:of=PartialResults",
+      "src/mcp_server_everything_search/search_interface.py:method:PartialResults.__init__:returns=None",
+      "tests/test_everything_sdk.py:test_all_results_unreadable_raises",
+      "tests/test_everything_sdk.py:test_all_results_unreadable_raises:kind=test_function",
+      "tests/test_everything_sdk.py:test_complete_results_are_not_marked_partial",
+      "tests/test_everything_sdk.py:test_complete_results_are_not_marked_partial:kind=test_function",
+      "tests/test_everything_sdk.py:test_default_loader_off_windows_reports_windows_only",
+      "tests/test_everything_sdk.py:test_default_loader_off_windows_reports_windows_only:kind=test_function",
+      "tests/test_everything_sdk.py:test_default_loader_on_windows_reports_missing_dll_with_sdk_path_hint",
+      "tests/test_everything_sdk.py:test_default_loader_on_windows_reports_missing_dll_with_sdk_path_hint:kind=test_function",
+      "tests/test_everything_sdk.py:test_dll_load_failure_names_everything_sdk_path",
+      "tests/test_everything_sdk.py:test_dll_load_failure_names_everything_sdk_path:kind=test_function",
+      "tests/test_everything_sdk.py:test_dll_without_everything_functions_is_rejected",
+      "tests/test_everything_sdk.py:test_dll_without_everything_functions_is_rejected:kind=test_function",
+      "tests/test_everything_sdk.py:test_everything_error_carries_code_and_message",
+      "tests/test_everything_sdk.py:test_everything_error_carries_code_and_message:kind=test_function",
+      "tests/test_everything_sdk.py:test_everything_is_reset_after_a_successful_search",
+      "tests/test_everything_sdk.py:test_everything_is_reset_after_a_successful_search:kind=test_function",
+      "tests/test_everything_sdk.py:test_everything_is_reset_even_when_the_query_fails",
+      "tests/test_everything_sdk.py:test_everything_is_reset_even_when_the_query_fails:kind=test_function",
+      "tests/test_everything_sdk.py:test_format_results_warns_when_results_are_partial",
+      "tests/test_everything_sdk.py:test_format_results_warns_when_results_are_partial:kind=test_function",
+      "tests/test_everything_sdk.py:test_loaded_dll_is_exposed_and_configured",
+      "tests/test_everything_sdk.py:test_loaded_dll_is_exposed_and_configured:kind=test_function",
+      "tests/test_everything_sdk.py:test_module_uses_logging_for_diagnostics",
+      "tests/test_everything_sdk.py:test_module_uses_logging_for_diagnostics:kind=test_function",
+      "tests/test_everything_sdk.py:test_partial_results_behave_like_a_list_with_an_unreadable_count",
+      "tests/test_everything_sdk.py:test_partial_results_behave_like_a_list_with_an_unreadable_count:kind=test_function",
+      "tests/test_everything_sdk.py:test_query_failure_raises_everything_error",
+      "tests/test_everything_sdk.py:test_query_failure_raises_everything_error:kind=test_function",
+      "tests/test_everything_sdk.py:test_query_failure_without_error_code_raises_runtime_error",
+      "tests/test_everything_sdk.py:test_query_failure_without_error_code_raises_runtime_error:kind=test_function",
+      "tests/test_everything_sdk.py:test_result_with_null_filename_counts_as_unreadable",
+      "tests/test_everything_sdk.py:test_result_with_null_filename_counts_as_unreadable:kind=test_function",
+      "tests/test_everything_sdk.py:test_sdk_constants_match_everything_sdk_header",
+      "tests/test_everything_sdk.py:test_sdk_constants_match_everything_sdk_header:kind=test_function",
+      "tests/test_everything_sdk.py:test_search_configures_everything_and_returns_results",
+      "tests/test_everything_sdk.py:test_search_configures_everything_and_returns_results:kind=test_function",
+      "tests/test_everything_sdk.py:test_search_does_not_print_debug_output",
+      "tests/test_everything_sdk.py:test_search_does_not_print_debug_output:kind=test_function",
+      "tests/test_everything_sdk.py:test_search_requests_the_default_result_fields",
+      "tests/test_everything_sdk.py:test_search_requests_the_default_result_fields:kind=test_function",
+      "tests/test_everything_sdk.py:test_search_result_optional_fields_default_to_none",
+      "tests/test_everything_sdk.py:test_search_result_optional_fields_default_to_none:kind=test_function",
+      "tests/test_everything_sdk.py:test_search_returns_at_most_max_results",
+      "tests/test_everything_sdk.py:test_search_returns_at_most_max_results:kind=test_function",
+      "tests/test_everything_sdk.py:test_search_with_no_matches_returns_empty_list",
+      "tests/test_everything_sdk.py:test_search_with_no_matches_returns_empty_list:kind=test_function",
+      "tests/test_everything_sdk.py:test_unreadable_results_are_returned_as_partial_results",
+      "tests/test_everything_sdk.py:test_unreadable_results_are_returned_as_partial_results:kind=test_function",
+      "tests/test_everything_sdk.py:test_unrepresentable_timestamp_becomes_none_and_keeps_result",
+      "tests/test_everything_sdk.py:test_unrepresentable_timestamp_becomes_none_and_keeps_result:kind=test_function",
+      "tests/test_everything_sdk.py:test_windows_filetime_constants_describe_the_1601_epoch",
+      "tests/test_everything_sdk.py:test_windows_filetime_constants_describe_the_1601_epoch:kind=test_function",
+      "tests/test_everything_sdk.py:test_windows_provider_surfaces_unreadable_results_in_tool_output",
+      "tests/test_everything_sdk.py:test_windows_provider_surfaces_unreadable_results_in_tool_output:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/test_everything_sdk.py"
+      ],
+      "edit": [
+        "src/mcp_server_everything_search/everything_sdk.py",
+        "src/mcp_server_everything_search/search_interface.py"
+      ],
+      "read": [
+        "manifests/007-apply-mac-linux-params.manifest.yaml",
+        "tests/test_ci_workflow.py"
+      ],
+      "scope": [
+        ".github/workflows/ci.yml",
+        "src/mcp_server_everything_search/server.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_everything_sdk.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_sdk_constants_match_everything_sdk_header"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_windows_filetime_constants_describe_the_1601_epoch"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_search_result_optional_fields_default_to_none"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_everything_error_carries_code_and_message"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_dll_load_failure_names_everything_sdk_path"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_dll_without_everything_functions_is_rejected"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_default_loader_off_windows_reports_windows_only"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_default_loader_on_windows_reports_missing_dll_with_sdk_path_hint"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_loaded_dll_is_exposed_and_configured"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_search_configures_everything_and_returns_results"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_search_requests_the_default_result_fields"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_search_with_no_matches_returns_empty_list"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_search_returns_at_most_max_results"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_unrepresentable_timestamp_becomes_none_and_keeps_result"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_unreadable_results_are_returned_as_partial_results"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_complete_results_are_not_marked_partial"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_all_results_unreadable_raises"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_everything_is_reset_after_a_successful_search"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_result_with_null_filename_counts_as_unreadable"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_query_failure_raises_everything_error"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_query_failure_without_error_code_raises_runtime_error"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_everything_is_reset_even_when_the_query_fails"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_search_does_not_print_debug_output"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_module_uses_logging_for_diagnostics"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_partial_results_behave_like_a_list_with_an_unreadable_count"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_format_results_warns_when_results_are_partial"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_windows_provider_surfaces_unreadable_results_in_tool_output"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "src/mcp_server_everything_search/everything_sdk.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_OK",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_ERROR_MEMORY",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_ERROR_IPC",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_ERROR_REGISTERCLASSEX",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_ERROR_CREATEWINDOW",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_ERROR_CREATETHREAD",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_ERROR_INVALIDINDEX",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_ERROR_INVALIDCALL",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_REQUEST_FILE_NAME",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_REQUEST_PATH",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_REQUEST_FULL_PATH_AND_FILE_NAME",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_REQUEST_EXTENSION",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_REQUEST_SIZE",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_REQUEST_DATE_CREATED",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_REQUEST_DATE_MODIFIED",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_REQUEST_DATE_ACCESSED",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_REQUEST_ATTRIBUTES",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_REQUEST_FILE_LIST_FILE_NAME",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_REQUEST_RUN_COUNT",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_REQUEST_DATE_RUN",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_REQUEST_DATE_RECENTLY_CHANGED",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_REQUEST_HIGHLIGHTED_FILE_NAME",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_REQUEST_HIGHLIGHTED_PATH",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_REQUEST_HIGHLIGHTED_FULL_PATH_AND_FILE_NAME",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_SORT_NAME_ASCENDING",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_SORT_NAME_DESCENDING",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_SORT_PATH_ASCENDING",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_SORT_PATH_DESCENDING",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_SORT_SIZE_ASCENDING",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_SORT_SIZE_DESCENDING",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_SORT_EXTENSION_ASCENDING",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_SORT_EXTENSION_DESCENDING",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_SORT_TYPE_NAME_ASCENDING",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_SORT_TYPE_NAME_DESCENDING",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_SORT_DATE_CREATED_ASCENDING",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_SORT_DATE_CREATED_DESCENDING",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_SORT_DATE_MODIFIED_ASCENDING",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_SORT_DATE_MODIFIED_DESCENDING",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_SORT_ATTRIBUTES_ASCENDING",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_SORT_ATTRIBUTES_DESCENDING",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_SORT_FILE_LIST_FILENAME_ASCENDING",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_SORT_FILE_LIST_FILENAME_DESCENDING",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_SORT_RUN_COUNT_ASCENDING",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_SORT_RUN_COUNT_DESCENDING",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_SORT_DATE_RECENTLY_CHANGED_ASCENDING",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_SORT_DATE_RECENTLY_CHANGED_DESCENDING",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_SORT_DATE_ACCESSED_ASCENDING",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_SORT_DATE_ACCESSED_DESCENDING",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_SORT_DATE_RUN_ASCENDING",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "EVERYTHING_SORT_DATE_RUN_DESCENDING",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "WINDOWS_TICKS",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "WINDOWS_EPOCH",
+              "type": "datetime.datetime"
+            },
+            {
+              "kind": "attribute",
+              "name": "POSIX_EPOCH",
+              "type": "datetime.datetime"
+            },
+            {
+              "kind": "attribute",
+              "name": "EPOCH_DIFF",
+              "type": "float"
+            },
+            {
+              "kind": "attribute",
+              "name": "WINDOWS_TICKS_TO_POSIX_EPOCH",
+              "type": "float"
+            },
+            {
+              "kind": "attribute",
+              "name": "logger",
+              "description": "Module logger; replaces print-to-stderr debug output.",
+              "type": "logging.Logger"
+            },
+            {
+              "kind": "class",
+              "name": "SearchResult",
+              "bases": [
+                "BaseModel"
+              ]
+            },
+            {
+              "kind": "attribute",
+              "name": "path",
+              "of": "SearchResult",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "filename",
+              "of": "SearchResult",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "extension",
+              "of": "SearchResult",
+              "type": "Optional[str]"
+            },
+            {
+              "kind": "attribute",
+              "name": "size",
+              "of": "SearchResult",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "created",
+              "of": "SearchResult",
+              "type": "Optional[str]"
+            },
+            {
+              "kind": "attribute",
+              "name": "modified",
+              "of": "SearchResult",
+              "type": "Optional[str]"
+            },
+            {
+              "kind": "attribute",
+              "name": "accessed",
+              "of": "SearchResult",
+              "type": "Optional[str]"
+            },
+            {
+              "kind": "attribute",
+              "name": "attributes",
+              "of": "SearchResult",
+              "type": "Optional[int]"
+            },
+            {
+              "kind": "attribute",
+              "name": "run_count",
+              "of": "SearchResult",
+              "type": "Optional[int]"
+            },
+            {
+              "kind": "attribute",
+              "name": "highlighted_filename",
+              "of": "SearchResult",
+              "type": "Optional[str]"
+            },
+            {
+              "kind": "attribute",
+              "name": "highlighted_path",
+              "of": "SearchResult",
+              "type": "Optional[str]"
+            },
+            {
+              "kind": "class",
+              "name": "EverythingError",
+              "bases": [
+                "Exception"
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "__init__",
+              "of": "EverythingError",
+              "args": [
+                {
+                  "name": "error_code",
+                  "type": "int"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "attribute",
+              "name": "error_code",
+              "of": "EverythingError",
+              "type": "int"
+            },
+            {
+              "kind": "class",
+              "name": "EverythingSDK"
+            },
+            {
+              "kind": "method",
+              "name": "__init__",
+              "description": "Loader is injectable for tests; default ctypes.WinDLL raises RuntimeError off Windows. OSError -> RuntimeError naming EVERYTHING_SDK_PATH; missing SDK functions -> RuntimeError.",
+              "of": "EverythingSDK",
+              "args": [
+                {
+                  "name": "dll_path",
+                  "type": "str"
+                },
+                {
+                  "name": "loader",
+                  "type": "Callable[[str], Any]",
+                  "default": "_load_windll"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "attribute",
+              "name": "dll",
+              "of": "EverythingSDK",
+              "type": "Any"
+            },
+            {
+              "kind": "method",
+              "name": "search_files",
+              "description": "Per-timestamp conversion failures become None; unreadable results are skipped and reported via PartialResults; all unreadable raises RuntimeError; Everything_Reset always runs.",
+              "of": "EverythingSDK",
+              "args": [
+                {
+                  "name": "query",
+                  "type": "str"
+                },
+                {
+                  "name": "max_results",
+                  "type": "int",
+                  "default": "100"
+                },
+                {
+                  "name": "match_path",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "match_case",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "match_whole_word",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "match_regex",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "sort_by",
+                  "type": "int",
+                  "default": "EVERYTHING_SORT_NAME_ASCENDING"
+                },
+                {
+                  "name": "request_flags",
+                  "type": "Optional[int]",
+                  "default": "None"
+                }
+              ],
+              "returns": "List[SearchResult]"
+            }
+          ]
+        },
+        {
+          "path": "src/mcp_server_everything_search/search_interface.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "PartialResults",
+              "description": "List of results plus the number of matches that could not be read.",
+              "bases": [
+                "List[Any]"
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "__init__",
+              "of": "PartialResults",
+              "args": [
+                {
+                  "name": "results",
+                  "type": "Iterable[Any]",
+                  "default": "()"
+                },
+                {
+                  "name": "unreadable",
+                  "type": "int",
+                  "default": "0"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "attribute",
+              "name": "unreadable",
+              "of": "PartialResults",
+              "type": "int"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/007-apply-mac-linux-params.manifest.yaml",
+        "tests/test_ci_workflow.py"
+      ],
+      "scope": [
+        {
+          "path": "src/mcp_server_everything_search/server.py",
+          "reason": "format_results appends a warning for PartialResults; no signature change."
+        },
+        {
+          "path": ".github/workflows/ci.yml",
+          "reason": "Add everything_sdk.py to MAID_COVERED_PATHS."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/test_ci_workflow.py",
+      "tests/test_everything_sdk.py"
+    ],
+    "validate_commands": [
+      "uv run pytest tests/test_everything_sdk.py tests/test_ci_workflow.py -q"
+    ],
+    "acceptance_commands": []
+  }
+}
