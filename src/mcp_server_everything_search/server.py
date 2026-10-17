@@ -3,80 +3,37 @@
 import json
 import platform
 import sys
-from typing import List
-from mcp.server import Server
+from typing import Any, Dict, List, Optional
+
+from mcp import MCPError
+from mcp.server import Server, ServerRequestContext
 from mcp.server.stdio import stdio_server
-from mcp.types import TextContent, Tool, Resource, ResourceTemplate, Prompt
-from pydantic import BaseModel, Field
+from mcp.types import (
+    INVALID_PARAMS,
+    CallToolRequestParams,
+    CallToolResult,
+    ListPromptsResult,
+    ListResourcesResult,
+    ListResourceTemplatesResult,
+    ListToolsResult,
+    PaginatedRequestParams,
+    TextContent,
+    Tool,
+)
 
-from .platform_search import UnifiedSearchQuery, WindowsSpecificParams, build_search_command
-from .search_interface import SearchProvider
+from .platform_search import UnifiedSearchQuery, WindowsSpecificParams
+from .search_interface import SearchProvider, SearchResult
 
-class SearchQuery(BaseModel):
-    """Model for search query parameters."""
-    query: str = Field(
-        description="Search query string. See the search syntax guide for details."
-    )
-    max_results: int = Field(
-        default=100,
-        ge=1,
-        le=1000,
-        description="Maximum number of results to return (1-1000)"
-    )
-    match_path: bool = Field(
-        default=False,
-        description="Match against full path instead of filename only"
-    )
-    match_case: bool = Field(
-        default=False,
-        description="Enable case-sensitive search"
-    )
-    match_whole_word: bool = Field(
-        default=False,
-        description="Match whole words only"
-    )
-    match_regex: bool = Field(
-        default=False,
-        description="Enable regex search"
-    )
-    sort_by: int = Field(
-        default=1,
-        description="Sort order for results (Note: Not all sort options available on all platforms)"
-    )
+_SEARCH_TOOL_NAME = "search"
 
-async def serve() -> None:
-    """Run the server."""
-    current_platform = platform.system().lower()
-    search_provider = SearchProvider.get_provider()
-    
-    server = Server("universal-search")
+_PLATFORM_INFO = {
+    "windows": "Using Everything SDK with full search capabilities",
+    "darwin": "Using mdfind (Spotlight) with native macOS search capabilities",
+    "linux": "Using locate with Unix-style search capabilities",
+}
 
-    @server.list_resources()
-    async def list_resources() -> list[Resource]:
-        """Return an empty list since this server doesn't provide any resources."""
-        return []
-
-    @server.list_resource_templates()
-    async def list_resource_templates() -> list[ResourceTemplate]:
-        """Return an empty list since this server doesn't provide any resource templates."""
-        return []
-
-    @server.list_prompts()
-    async def list_prompts() -> list[Prompt]:
-        """Return an empty list since this server doesn't provide any prompts."""
-        return []
-
-    @server.list_tools()
-    async def list_tools() -> List[Tool]:
-        """Return the search tool with platform-specific documentation and schema."""
-        platform_info = {
-            'windows': "Using Everything SDK with full search capabilities",
-            'darwin': "Using mdfind (Spotlight) with native macOS search capabilities",
-            'linux': "Using locate with Unix-style search capabilities"
-        }
-
-        syntax_docs = {
-            'darwin': """macOS Spotlight (mdfind) Search Syntax:
+_SYNTAX_DOCS = {
+    "darwin": """macOS Spotlight (mdfind) Search Syntax:
                 
 Basic Usage:
 - Simple text search: Just type the words you're looking for
@@ -95,8 +52,7 @@ Metadata Attributes:
 - kMDItemKind
 - kMDItemFSSize
 - And many more OS X metadata attributes""",
-
-            'linux': """Linux Locate Search Syntax:
+    "linux": """Linux Locate Search Syntax:
 
 Basic Usage:
 - Simple pattern: locate filename
@@ -115,7 +71,7 @@ Examples:
 - locate -r "/home/.*\.txt$"
 - locate -c "*.doc"
 """,
-            'windows': """Search for files and folders using Everything SDK.
+    "windows": """Search for files and folders using Everything SDK.
                 
 Features:
 - Fast file and folder search across all indexed drives
@@ -197,122 +153,169 @@ Examples:
    ext:mp4|mkv|avi size:>1gb
 3. Find files in specific folder:
    path:C:\Projects *.js
-"""
-        }
+""",
+}
 
-        description = f"""Universal file search tool for {platform.system()}
+
+def build_search_tool(system: str) -> Tool:
+    """Return the search tool with platform-specific documentation and schema."""
+    description = f"""Universal file search tool for {platform.system()}
 
 Current Implementation:
-{platform_info.get(current_platform, "Unknown platform")}
+{_PLATFORM_INFO.get(system, "Unknown platform")}
 
 Search Syntax Guide:
-{syntax_docs.get(current_platform, "Platform-specific syntax guide not available")}
+{_SYNTAX_DOCS.get(system, "Platform-specific syntax guide not available")}
 """
+    return Tool(
+        name=_SEARCH_TOOL_NAME,
+        description=description,
+        input_schema=UnifiedSearchQuery.get_schema_for_platform(),
+    )
 
-        return [
-            Tool(
-                name="search",
-                description=description,
-                inputSchema=UnifiedSearchQuery.get_schema_for_platform()
-            )
+
+def parse_search_arguments(arguments: Optional[Dict[str, Any]]) -> UnifiedSearchQuery:
+    """Parse tool arguments into a validated query.
+
+    mcp 2.x does not validate arguments against the input schema, so this is
+    the validation boundary. ``base`` may be a dict, a JSON string, or a plain
+    query string; ``windows_params`` may be a dict or a JSON string.
+    """
+    arguments = arguments or {}
+    base_params: Dict[str, Any] = {}
+    windows_params: Dict[str, Any] = {}
+
+    if "base" in arguments:
+        if isinstance(arguments["base"], str):
+            try:
+                base_params = json.loads(arguments["base"])
+            except json.JSONDecodeError:
+                # If not valid JSON string, treat as simple query string
+                base_params = {"query": arguments["base"]}
+        elif isinstance(arguments["base"], dict):
+            base_params = arguments["base"]
+        else:
+            raise ValueError("'base' parameter must be a string or dictionary")
+
+    if "windows_params" in arguments:
+        if isinstance(arguments["windows_params"], str):
+            try:
+                windows_params = json.loads(arguments["windows_params"])
+            except json.JSONDecodeError:
+                raise ValueError("Invalid JSON in windows_params")
+        elif isinstance(arguments["windows_params"], dict):
+            windows_params = arguments["windows_params"]
+        else:
+            raise ValueError("'windows_params' must be a string or dictionary")
+
+    return UnifiedSearchQuery(**{**base_params, "windows_params": windows_params})
+
+
+def format_results(results: List[SearchResult]) -> str:
+    """Render search results as the tool's text output."""
+    return "\n".join(
+        [
+            f"Path: {r.path}\n"
+            f"Filename: {r.filename}"
+            f"{f' ({r.extension})' if r.extension else ''}\n"
+            f"Size: {r.size:,} bytes\n"
+            f"Created: {r.created if r.created else 'N/A'}\n"
+            f"Modified: {r.modified if r.modified else 'N/A'}\n"
+            f"Accessed: {r.accessed if r.accessed else 'N/A'}\n"
+            for r in results
         ]
+    )
 
-    @server.call_tool()
-    async def call_tool(name: str, arguments: dict) -> List[TextContent]:
-        if name != "search":
-            raise ValueError(f"Unknown tool: {name}")
 
+def _run_search(
+    search_provider: SearchProvider, system: str, query: UnifiedSearchQuery
+) -> List[SearchResult]:
+    if system == "windows":
+        # Use Everything SDK directly
+        windows_params = query.windows_params or WindowsSpecificParams()
+        return search_provider.search_files(
+            query=query.query,
+            max_results=query.max_results,
+            match_path=windows_params.match_path,
+            match_case=windows_params.match_case,
+            match_whole_word=windows_params.match_whole_word,
+            match_regex=windows_params.match_regex,
+            sort_by=windows_params.sort_by,
+        )
+
+    # Use command-line tools (mdfind/locate)
+    platform_params = None
+    if system == "darwin":
+        platform_params = query.mac_params
+    elif system == "linux":
+        platform_params = query.linux_params
+    return search_provider.search_files(
+        query=query.query,
+        max_results=query.max_results,
+        **(platform_params.model_dump() if platform_params else {}),
+    )
+
+
+def create_server(search_provider: SearchProvider, system: str) -> Server:
+    """Build the lowlevel mcp 2.x server bound to a provider and lowercase platform name."""
+
+    async def on_list_tools(
+        ctx: ServerRequestContext, params: Optional[PaginatedRequestParams]
+    ) -> ListToolsResult:
+        return ListToolsResult(tools=[build_search_tool(system)])
+
+    async def on_call_tool(
+        ctx: ServerRequestContext, params: CallToolRequestParams
+    ) -> CallToolResult:
+        if params.name != _SEARCH_TOOL_NAME:
+            raise MCPError(INVALID_PARAMS, f"Unknown tool: {params.name}")
         try:
-            # Parse and validate inputs
-            base_params = {}
-            windows_params = {}
-            
-            # Handle base parameters
-            if 'base' in arguments:
-                if isinstance(arguments['base'], str):
-                    try:
-                        base_params = json.loads(arguments['base'])
-                    except json.JSONDecodeError:
-                        # If not valid JSON string, treat as simple query string
-                        base_params = {'query': arguments['base']}
-                elif isinstance(arguments['base'], dict):
-                    # If already a dict, use directly
-                    base_params = arguments['base']
-                else:
-                    raise ValueError("'base' parameter must be a string or dictionary")
-
-            # Handle Windows-specific parameters
-            if 'windows_params' in arguments:
-                if isinstance(arguments['windows_params'], str):
-                    try:
-                        windows_params = json.loads(arguments['windows_params'])
-                    except json.JSONDecodeError:
-                        raise ValueError("Invalid JSON in windows_params")
-                elif isinstance(arguments['windows_params'], dict):
-                    # If already a dict, use directly
-                    windows_params = arguments['windows_params']
-                else:
-                    raise ValueError("'windows_params' must be a string or dictionary")
-
-            # Combine parameters
-            query_params = {
-                **base_params,
-                'windows_params': windows_params
-            }
-
-            # Create unified query
-            query = UnifiedSearchQuery(**query_params)
-
-            if current_platform == "windows":
-                # Use Everything SDK directly
-                platform_params = query.windows_params or WindowsSpecificParams()
-                results = search_provider.search_files(
-                    query=query.query,
-                    max_results=query.max_results,
-                    match_path=platform_params.match_path,
-                    match_case=platform_params.match_case,
-                    match_whole_word=platform_params.match_whole_word,
-                    match_regex=platform_params.match_regex,
-                    sort_by=platform_params.sort_by
-                )
-            else:
-                # Use command-line tools (mdfind/locate)
-                platform_params = None
-                if current_platform == 'darwin':
-                    platform_params = query.mac_params or {}
-                elif current_platform == 'linux':
-                    platform_params = query.linux_params or {}
-
-                results = search_provider.search_files(
-                    query=query.query,
-                    max_results=query.max_results,
-                    **platform_params.dict() if platform_params else {}
-                )
-            
-            return [TextContent(
-                type="text",
-                text="\n".join([
-                    f"Path: {r.path}\n"
-                    f"Filename: {r.filename}"
-                    f"{f' ({r.extension})' if r.extension else ''}\n"
-                    f"Size: {r.size:,} bytes\n"
-                    f"Created: {r.created if r.created else 'N/A'}\n"
-                    f"Modified: {r.modified if r.modified else 'N/A'}\n"
-                    f"Accessed: {r.accessed if r.accessed else 'N/A'}\n"
-                    for r in results
-                ])
-            )]
+            query = parse_search_arguments(params.arguments)
+            results = _run_search(search_provider, system, query)
         except Exception as e:
-            return [TextContent(
-                type="text",
-                text=f"Search failed: {str(e)}"
-            )]
+            return CallToolResult(
+                content=[TextContent(type="text", text=f"Search failed: {str(e)}")],
+                is_error=True,
+            )
+        return CallToolResult(
+            content=[TextContent(type="text", text=format_results(results))],
+            is_error=False,
+        )
 
+    async def on_list_resources(
+        ctx: ServerRequestContext, params: Optional[PaginatedRequestParams]
+    ) -> ListResourcesResult:
+        return ListResourcesResult(resources=[])
+
+    async def on_list_resource_templates(
+        ctx: ServerRequestContext, params: Optional[PaginatedRequestParams]
+    ) -> ListResourceTemplatesResult:
+        return ListResourceTemplatesResult(resource_templates=[])
+
+    async def on_list_prompts(
+        ctx: ServerRequestContext, params: Optional[PaginatedRequestParams]
+    ) -> ListPromptsResult:
+        return ListPromptsResult(prompts=[])
+
+    return Server(
+        "universal-search",
+        on_list_tools=on_list_tools,
+        on_call_tool=on_call_tool,
+        on_list_resources=on_list_resources,
+        on_list_resource_templates=on_list_resource_templates,
+        on_list_prompts=on_list_prompts,
+    )
+
+
+async def serve() -> None:
+    """Run the server over stdio with the current platform's search provider."""
+    server = create_server(SearchProvider.get_provider(), platform.system().lower())
     options = server.create_initialization_options()
     async with stdio_server() as (read_stream, write_stream):
         await server.run(read_stream, write_stream, options, raise_exceptions=True)
 
-def configure_windows_console():
+
+def configure_windows_console() -> None:
     """Configure Windows console for UTF-8 output."""
     import ctypes
 
@@ -321,28 +324,30 @@ def configure_windows_console():
         kernel32 = ctypes.windll.kernel32
         STD_OUTPUT_HANDLE = -11
         ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004
-        
+
         handle = kernel32.GetStdHandle(STD_OUTPUT_HANDLE)
         mode = ctypes.c_ulong()
         kernel32.GetConsoleMode(handle, ctypes.byref(mode))
         mode.value |= ENABLE_VIRTUAL_TERMINAL_PROCESSING
         kernel32.SetConsoleMode(handle, mode)
-        
+
         # Set UTF-8 encoding for console output
-        sys.stdout.reconfigure(encoding='utf-8')
-        sys.stderr.reconfigure(encoding='utf-8')
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+
 
 def main() -> None:
     """Main entry point."""
     import asyncio
     import logging
+
     logging.basicConfig(
         level=logging.WARNING,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
     configure_windows_console()
-    
+
     try:
         asyncio.run(serve())
     except KeyboardInterrupt:

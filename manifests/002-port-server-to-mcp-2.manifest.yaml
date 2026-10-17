@@ -1,0 +1,306 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+sequence_number: 2
+goal: Port the MCP server to the mcp 2.x lowlevel Server API so fresh installs start again
+type: fix
+created: '2026-10-17T01:52:41Z'
+metadata:
+  tags:
+  - mcp
+  - dependency
+  - brownfield-coverage
+description: |
+  mcp 2.0 (released 2026-08) replaced the lowlevel Server decorators
+  (@server.list_tools, @server.call_tool, @server.list_resources, ...) with
+  constructor on_* handlers taking (ctx, params) and returning full result
+  types. pyproject required an unbounded mcp>=1.0.0, so every fresh uvx install
+  of v0.2.1 resolves mcp 2.3.0 and crashes at startup with
+  AttributeError: 'Server' object has no attribute 'list_resources'
+  (reproduced in a Windows 11 VM on 2026-10-17).
+
+  Decision: port to mcp 2.x and require mcp>=2.0.0,<3 instead of capping at
+  mcp<2. The 1.x API is the past; the upper bound on the next major prevents a
+  repeat of this outage. The lowlevel Server is kept (not MCPServer) because the
+  tool schema is hand-built per platform by UnifiedSearchQuery.
+
+  Restructure server.py for testability: the handlers were closures inside
+  serve(). Extract pure functions build_search_tool, parse_search_arguments and
+  format_results, and a create_server(search_provider, system) composition
+  function that wires on_list_tools, on_call_tool, on_list_resources,
+  on_list_resource_templates and on_list_prompts. serve() stays the composition
+  root (real provider + stdio). Tests drive create_server through the in-memory
+  mcp.Client with a fake SearchProvider.
+
+  Behavior is preserved except where mcp 2.x semantics require a choice:
+  - Search failures (provider errors, invalid arguments) keep the
+    "Search failed: <message>" text but now return CallToolResult with
+    is_error=True so clients and models can tell a failure from results.
+  - Unknown tool names raise MCPError(-32602) (spec invalid-params); a plain
+    ValueError would reach the client as a sanitized -32603.
+  - params.arguments may be None in 2.x; it is treated as {}.
+  mcp 2.x no longer validates arguments against input_schema, so
+  parse_search_arguments (Pydantic) remains the validation boundary.
+  Characterized as-is (not fixed here): mac_params/linux_params are ignored when
+  parsing (#30, PR #32).
+
+  The system argument of build_search_tool/create_server selects the platform
+  description and the provider call path. The tool input schema and the
+  description's first line still follow platform.system() through
+  UnifiedSearchQuery.get_schema_for_platform() and the existing template;
+  serve() passes platform.system().lower(), so in production they agree.
+
+  Out of scope: the version bump and PyPI release (separate release step);
+  stdin UTF-8 handling (#27/#28).
+
+  The unused SearchQuery model is removed; nothing imports it.
+temptations:
+- risk: Testing handlers by calling private closures or mocking Server internals.
+  instead: Drive create_server through mcp.Client in-memory with FakeSearchProvider and assert on protocol results.
+- risk: 'Silently fixing #30 (mac/linux params), rewording result text, or trimming the platform syntax guides while porting.'
+  instead: 'Move parse, format and description logic verbatim; characterization tests pin result text, guide lines and #30 behavior.'
+- risk: Catching every exception and returning text without is_error, hiding failures.
+  instead: Return CallToolResult(is_error=True) for search failures; raise MCPError(-32602) for unknown tools.
+- risk: serve() passes tests while calling a removed API, skipping create_server, or wiring the wrong provider.
+  instead: Keep serve() as the composition root and exercise it through the stdio_server and get_provider seams.
+- risk: Ignoring the system argument and reading platform.system() inside create_server.
+  instead: Branch on the system argument; test_server_search_path_follows_system_argument pins it.
+files:
+  create:
+  - path: tests/test_server.py
+    artifacts:
+    - kind: test_function
+      name: test_build_search_tool_windows_uses_platform_schema_and_everything_docs
+    - kind: test_function
+      name: test_build_search_tool_linux_describes_locate
+    - kind: test_function
+      name: test_build_search_tool_darwin_describes_mdfind
+    - kind: test_function
+      name: test_build_search_tool_unknown_platform_says_unknown
+    - kind: test_function
+      name: test_parse_arguments_reads_base_dict_and_windows_params
+    - kind: test_function
+      name: test_parse_arguments_accepts_base_as_json_string
+    - kind: test_function
+      name: test_parse_arguments_treats_non_json_base_string_as_query
+    - kind: test_function
+      name: test_parse_arguments_accepts_windows_params_as_json_string
+    - kind: test_function
+      name: test_parse_arguments_rejects_invalid_windows_params_json
+    - kind: test_function
+      name: test_parse_arguments_rejects_base_of_wrong_type
+    - kind: test_function
+      name: test_parse_arguments_without_query_raises_validation_error
+    - kind: test_function
+      name: test_parse_arguments_ignores_mac_and_linux_params_issue_30
+    - kind: test_function
+      name: test_format_results_renders_every_field_with_na_for_missing_dates
+    - kind: test_function
+      name: test_format_results_omits_extension_suffix_when_absent
+    - kind: test_function
+      name: test_format_results_joins_multiple_results_with_newline
+    - kind: test_function
+      name: test_format_results_empty_list_is_empty_text
+    - kind: test_function
+      name: test_server_lists_single_search_tool_with_platform_schema
+    - kind: test_function
+      name: test_server_windows_search_passes_windows_params_and_returns_text
+    - kind: test_function
+      name: test_server_windows_search_without_windows_params_uses_defaults
+    - kind: test_function
+      name: test_server_command_line_search_passes_only_query_and_max_results
+    - kind: test_function
+      name: test_server_search_path_follows_system_argument
+    - kind: test_function
+      name: test_server_reports_missing_arguments_as_tool_error
+    - kind: test_function
+      name: test_server_reports_provider_failure_as_tool_error
+    - kind: test_function
+      name: test_server_reports_invalid_arguments_as_tool_error
+    - kind: test_function
+      name: test_server_rejects_unknown_tool_with_invalid_params_error
+    - kind: test_function
+      name: test_server_exposes_no_resources_templates_or_prompts
+    - kind: test_function
+      name: test_configure_windows_console_is_noop_off_windows
+    - kind: test_function
+      name: test_main_exits_with_status_1_when_serve_fails
+    - kind: test_function
+      name: test_serve_runs_platform_provider_over_stdio
+  - path: tests/test_package_metadata.py
+    artifacts:
+    - kind: test_function
+      name: test_mcp_requirement_excludes_mcp_1_and_next_major_versions
+    - kind: test_function
+      name: test_mcp_requirement_allows_mcp_2_versions
+  edit:
+  - path: src/mcp_server_everything_search/server.py
+    artifacts:
+    - kind: function
+      name: build_search_tool
+      args:
+      - name: system
+        type: str
+      returns: Tool
+      description: The single "search" tool with platform docs and UnifiedSearchQuery schema.
+    - kind: function
+      name: parse_search_arguments
+      args:
+      - name: arguments
+        type: Optional[Dict[str, Any]]
+      returns: UnifiedSearchQuery
+      description: Accepts base as dict, JSON string, or plain query string; windows_params as dict or JSON string.
+    - kind: function
+      name: format_results
+      args:
+      - name: results
+        type: List[SearchResult]
+      returns: str
+    - kind: function
+      name: create_server
+      args:
+      - name: search_provider
+        type: SearchProvider
+      - name: system
+        type: str
+      returns: Server
+      description: Lowlevel mcp 2.x Server with on_* handlers bound to the given provider and lowercase platform name.
+    - kind: function
+      name: serve
+      args: []
+      returns: None
+      description: Async composition root; real provider over stdio.
+    - kind: function
+      name: configure_windows_console
+      args: []
+      returns: None
+    - kind: function
+      name: main
+      args: []
+      returns: None
+  scope:
+  - path: pyproject.toml
+    reason: Require mcp>=2.0.0,<3; add packaging to the dev group (used by test_package_metadata).
+  - path: uv.lock
+    reason: Lock mcp 2.3.0 and its dependencies.
+  - path: CLAUDE.md
+    reason: Update the server.py architecture notes for the mcp 2.x on_* handlers and extracted functions.
+  read:
+  - src/mcp_server_everything_search/platform_search.py
+  - src/mcp_server_everything_search/search_interface.py
+  - src/mcp_server_everything_search/__init__.py
+  - src/mcp_server_everything_search/__main__.py
+validate:
+- - uv
+  - run
+  - pytest
+  - tests/test_server.py
+  - tests/test_package_metadata.py
+  - -q
+outcome:
+  status: completed
+  completed_at: '2026-10-17T10:20:00+08:00'
+  summary: Server ported to the mcp 2.x lowlevel Server API with mcp>=2.0.0,<3; fresh installs start and search
+    works on Windows with mcp 2.3.0 and 1.30.0 clients.
+  rationale: Ported instead of capping at mcp<2 per user decision. server.py was restructured into build_search_tool,
+    parse_search_arguments, format_results, create_server and a thin serve() so handlers are testable through mcp.Client.
+    Behavior preserved except is_error=True on search failures and MCPError(-32602) for unknown tools.
+  agent:
+    model: claude-opus-5-5
+    client: claude-code
+    skills:
+    - maid-planner
+    - maid-implementer
+    - maid-implementation-review
+  lessons:
+  - lesson_type: validation-gap
+    summary: An unbounded dependency (mcp>=1.0.0) let a breaking major release crash every fresh uvx install; pin
+      the next major and test the published requirement via importlib.metadata.
+    paths:
+    - pyproject.toml
+    - tests/test_package_metadata.py
+    tags:
+    - dependency
+    - release
+  - lesson_type: test-pattern
+    summary: Test an MCP composition root by swapping stdio_server for in-memory streams and the provider factory
+      for a fake, then driving a real ClientSession under anyio.fail_after.
+    paths:
+    - tests/test_server.py
+    tags:
+    - mcp
+    - composition-root
+  - lesson_type: process
+    summary: 'Red evidence must be exit 1: import tested functions via module attributes so missing artifacts fail
+      per test instead of erroring at collection (exit 2 is classified invalid).'
+    paths:
+    - tests/test_server.py
+    tags:
+    - plan-lock
+    - red-evidence
+  - lesson_type: process
+    summary: plan revise --stash-implementation stashes dependency lockfiles but not .venv; when tests require the
+      dependency bump, recapture red by restoring only the implementation file to baseline and running plain revise
+      (hash-verify the restore).
+    paths:
+    - .maid/plan-locks/002-port-server-to-mcp-2.lock.json
+    tags:
+    - plan-lock
+    - red-evidence
+    - maid-runner-feedback
+  review_notes:
+  - source: maid-plan-reviewer
+    severity: ready
+    summary: Approved after revision adding a real serve() seam test, system-argument independence, exact description
+      lines per platform, darwin coverage, None-arguments server test, and packaging dev dependency.
+  - source: maid-implementation-reviewer
+    severity: ready
+    summary: 'Ready to merge; description byte-identical to baseline for all platforms, provider kwargs and result
+      text unchanged, mcp==2.0.0 floor passes all tests, error paths keep the server alive. Nits applied (INVALID_PARAMS
+      constant, private tool-name constant). Follow-up: serverInfo.version is empty.'
+  validation:
+  - command:
+    - uv
+    - run
+    - pytest
+    - -q
+    status: passed
+    summary: 72 passed; red evidence (lock revision 3) 28 failed / 4 passed against baseline server.py with mcp
+      2.x installed.
+  - command:
+    - scripts/maid
+    - verify
+    - --profile
+    - handoff
+    - --summary
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --since
+    - 2c98580
+    status: passed
+    summary: 9/9 gates passed.
+  - command:
+    - uv
+    - run
+    - pyright
+    - src/mcp_server_everything_search/server.py
+    - tests
+    status: passed
+    summary: '0 errors; 2 warnings are pre-existing invalid escapes in the moved guide text (PR #11). ruff check/format
+      clean on touched files.'
+  - command:
+    - powershell
+    - -File
+    - C:\mcptest\run.ps1
+    - pypi-0.2.1
+    - port-locked
+    - port-fresh-uvx
+    status: passed
+    summary: 'Windows 11 VM, Everything 1.4.1.1032 + SDK: v0.2.1 + mcp 2.3.0 crashes at startup; ported build (locked
+      and fresh uvx) with mcp 2.3.0 and 1.30.0 clients returns correct size order for sort_by 6/5, is_error on invalid
+      args, and finds non-ASCII names.'

@@ -1,0 +1,423 @@
+{
+  "manifest_path": "manifests/002-port-server-to-mcp-2.manifest.yaml",
+  "manifest_hash": "sha256-contract:164112d99818117a482dad141a5074634b5054cec5ffe1e1771adb86d0fcc85d",
+  "test_hashes": {
+    "tests/test_server.py": "sha256-pyast:v2:89a51c075e2aa4d855060d0e3c95ab455b834fe25b620598b6902cee026d7c4d",
+    "tests/test_package_metadata.py": "sha256-pyast:v2:0b36a13ad3a18e54e81879e114e96ac81a7a7ec3170dfc04aeb14e5423c65749"
+  },
+  "created_at": "2026-10-17T01:52:32.233436+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:9474cb507318ce39a4563be2c30547ec07a147ef21025866dd8d8fe8479cf4e6",
+      "prior_test_hashes": {
+        "tests/test_server.py": "sha256-pyast:v2:f9161c94bcdd1eddd030c6e55d611229e4dd369cc21b99a1dd0133b63f55857d",
+        "tests/test_package_metadata.py": "sha256-pyast:v2:0b36a13ad3a18e54e81879e114e96ac81a7a7ec3170dfc04aeb14e5423c65749"
+      },
+      "revised_at": "2026-10-17T01:52:41.387996+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/002-port-server-to-mcp-2.manifest.yaml -> manifests/002-port-server-to-mcp-2.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:164112d99818117a482dad141a5074634b5054cec5ffe1e1771adb86d0fcc85d",
+      "prior_test_hashes": {
+        "tests/test_server.py": "sha256-pyast:v2:f9161c94bcdd1eddd030c6e55d611229e4dd369cc21b99a1dd0133b63f55857d",
+        "tests/test_package_metadata.py": "sha256-pyast:v2:0b36a13ad3a18e54e81879e114e96ac81a7a7ec3170dfc04aeb14e5423c65749"
+      },
+      "revised_at": "2026-10-17T01:55:22.165907+00:00",
+      "reason": "Test-only typing fixes after implementation (FakeSearchProvider signature, serve-test pre-initialized results). Red recaptured with server.py temporarily at baseline 2c98580 and mcp 2.x deps kept: --stash-implementation also stashes pyproject/uv.lock but not .venv, so tests cannot import mcp.Client.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-17T01:55:22.928173+00:00",
+    "commands": [
+      {
+        "command": "uv run pytest tests/test_server.py tests/test_package_metadata.py -q",
+        "exit_code": 1,
+        "output_tail": "FAILED tests/test_server.py::test_parse_arguments_rejects_base_of_wrong_type\nFAILED tests/test_server.py::test_parse_arguments_without_query_raises_validation_error\nFAILED tests/test_server.py::test_parse_arguments_ignores_mac_and_linux_params_issue_30\nFAILED tests/test_server.py::test_format_results_renders_every_field_with_na_for_missing_dates\nFAILED tests/test_server.py::test_format_results_omits_extension_suffix_when_absent\nFAILED tests/test_server.py::test_format_results_joins_multiple_results_with_newline\nFAILED tests/test_server.py::test_format_results_empty_list_is_empty_text - A...\nFAILED tests/test_server.py::test_server_lists_single_search_tool_with_platform_schema\nFAILED tests/test_server.py::test_server_windows_search_passes_windows_params_and_returns_text\nFAILED tests/test_server.py::test_server_windows_search_without_windows_params_uses_defaults\nFAILED tests/test_server.py::test_server_command_line_search_passes_only_query_and_max_results[Linux-linux]\nFAILED tests/test_server.py::test_server_command_line_search_passes_only_query_and_max_results[Darwin-darwin]\nFAILED tests/test_server.py::test_server_search_path_follows_system_argument\nFAILED tests/test_server.py::test_server_reports_missing_arguments_as_tool_error\nFAILED tests/test_server.py::test_server_reports_provider_failure_as_tool_error\nFAILED tests/test_server.py::test_server_reports_invalid_arguments_as_tool_error\nFAILED tests/test_server.py::test_server_rejects_unknown_tool_with_invalid_params_error\nFAILED tests/test_server.py::test_server_exposes_no_resources_templates_or_prompts\nFAILED tests/test_server.py::test_serve_runs_platform_provider_over_stdio - e...\n28 failed, 4 passed in 0.51s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": {
+    "model": "claude-opus-5-5",
+    "client": "claude-code",
+    "skills": [
+      "maid-planner"
+    ],
+    "source": "flags"
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "src/mcp_server_everything_search/server.py:function:build_search_tool",
+      "src/mcp_server_everything_search/server.py:function:build_search_tool:arg=system:type=str:default=None",
+      "src/mcp_server_everything_search/server.py:function:build_search_tool:kind=function",
+      "src/mcp_server_everything_search/server.py:function:build_search_tool:returns=Tool",
+      "src/mcp_server_everything_search/server.py:function:configure_windows_console",
+      "src/mcp_server_everything_search/server.py:function:configure_windows_console:kind=function",
+      "src/mcp_server_everything_search/server.py:function:configure_windows_console:returns=None",
+      "src/mcp_server_everything_search/server.py:function:create_server",
+      "src/mcp_server_everything_search/server.py:function:create_server:arg=search_provider:type=SearchProvider:default=None",
+      "src/mcp_server_everything_search/server.py:function:create_server:arg=system:type=str:default=None",
+      "src/mcp_server_everything_search/server.py:function:create_server:kind=function",
+      "src/mcp_server_everything_search/server.py:function:create_server:returns=Server",
+      "src/mcp_server_everything_search/server.py:function:format_results",
+      "src/mcp_server_everything_search/server.py:function:format_results:arg=results:type=List[SearchResult]:default=None",
+      "src/mcp_server_everything_search/server.py:function:format_results:kind=function",
+      "src/mcp_server_everything_search/server.py:function:format_results:returns=str",
+      "src/mcp_server_everything_search/server.py:function:main",
+      "src/mcp_server_everything_search/server.py:function:main:kind=function",
+      "src/mcp_server_everything_search/server.py:function:main:returns=None",
+      "src/mcp_server_everything_search/server.py:function:parse_search_arguments",
+      "src/mcp_server_everything_search/server.py:function:parse_search_arguments:arg=arguments:type=Optional[Dict[str, Any]]:default=None",
+      "src/mcp_server_everything_search/server.py:function:parse_search_arguments:kind=function",
+      "src/mcp_server_everything_search/server.py:function:parse_search_arguments:returns=UnifiedSearchQuery",
+      "src/mcp_server_everything_search/server.py:function:serve",
+      "src/mcp_server_everything_search/server.py:function:serve:kind=function",
+      "src/mcp_server_everything_search/server.py:function:serve:returns=None",
+      "tests/test_package_metadata.py:test_mcp_requirement_allows_mcp_2_versions",
+      "tests/test_package_metadata.py:test_mcp_requirement_allows_mcp_2_versions:kind=test_function",
+      "tests/test_package_metadata.py:test_mcp_requirement_excludes_mcp_1_and_next_major_versions",
+      "tests/test_package_metadata.py:test_mcp_requirement_excludes_mcp_1_and_next_major_versions:kind=test_function",
+      "tests/test_server.py:test_build_search_tool_darwin_describes_mdfind",
+      "tests/test_server.py:test_build_search_tool_darwin_describes_mdfind:kind=test_function",
+      "tests/test_server.py:test_build_search_tool_linux_describes_locate",
+      "tests/test_server.py:test_build_search_tool_linux_describes_locate:kind=test_function",
+      "tests/test_server.py:test_build_search_tool_unknown_platform_says_unknown",
+      "tests/test_server.py:test_build_search_tool_unknown_platform_says_unknown:kind=test_function",
+      "tests/test_server.py:test_build_search_tool_windows_uses_platform_schema_and_everything_docs",
+      "tests/test_server.py:test_build_search_tool_windows_uses_platform_schema_and_everything_docs:kind=test_function",
+      "tests/test_server.py:test_configure_windows_console_is_noop_off_windows",
+      "tests/test_server.py:test_configure_windows_console_is_noop_off_windows:kind=test_function",
+      "tests/test_server.py:test_format_results_empty_list_is_empty_text",
+      "tests/test_server.py:test_format_results_empty_list_is_empty_text:kind=test_function",
+      "tests/test_server.py:test_format_results_joins_multiple_results_with_newline",
+      "tests/test_server.py:test_format_results_joins_multiple_results_with_newline:kind=test_function",
+      "tests/test_server.py:test_format_results_omits_extension_suffix_when_absent",
+      "tests/test_server.py:test_format_results_omits_extension_suffix_when_absent:kind=test_function",
+      "tests/test_server.py:test_format_results_renders_every_field_with_na_for_missing_dates",
+      "tests/test_server.py:test_format_results_renders_every_field_with_na_for_missing_dates:kind=test_function",
+      "tests/test_server.py:test_main_exits_with_status_1_when_serve_fails",
+      "tests/test_server.py:test_main_exits_with_status_1_when_serve_fails:kind=test_function",
+      "tests/test_server.py:test_parse_arguments_accepts_base_as_json_string",
+      "tests/test_server.py:test_parse_arguments_accepts_base_as_json_string:kind=test_function",
+      "tests/test_server.py:test_parse_arguments_accepts_windows_params_as_json_string",
+      "tests/test_server.py:test_parse_arguments_accepts_windows_params_as_json_string:kind=test_function",
+      "tests/test_server.py:test_parse_arguments_ignores_mac_and_linux_params_issue_30",
+      "tests/test_server.py:test_parse_arguments_ignores_mac_and_linux_params_issue_30:kind=test_function",
+      "tests/test_server.py:test_parse_arguments_reads_base_dict_and_windows_params",
+      "tests/test_server.py:test_parse_arguments_reads_base_dict_and_windows_params:kind=test_function",
+      "tests/test_server.py:test_parse_arguments_rejects_base_of_wrong_type",
+      "tests/test_server.py:test_parse_arguments_rejects_base_of_wrong_type:kind=test_function",
+      "tests/test_server.py:test_parse_arguments_rejects_invalid_windows_params_json",
+      "tests/test_server.py:test_parse_arguments_rejects_invalid_windows_params_json:kind=test_function",
+      "tests/test_server.py:test_parse_arguments_treats_non_json_base_string_as_query",
+      "tests/test_server.py:test_parse_arguments_treats_non_json_base_string_as_query:kind=test_function",
+      "tests/test_server.py:test_parse_arguments_without_query_raises_validation_error",
+      "tests/test_server.py:test_parse_arguments_without_query_raises_validation_error:kind=test_function",
+      "tests/test_server.py:test_serve_runs_platform_provider_over_stdio",
+      "tests/test_server.py:test_serve_runs_platform_provider_over_stdio:kind=test_function",
+      "tests/test_server.py:test_server_command_line_search_passes_only_query_and_max_results",
+      "tests/test_server.py:test_server_command_line_search_passes_only_query_and_max_results:kind=test_function",
+      "tests/test_server.py:test_server_exposes_no_resources_templates_or_prompts",
+      "tests/test_server.py:test_server_exposes_no_resources_templates_or_prompts:kind=test_function",
+      "tests/test_server.py:test_server_lists_single_search_tool_with_platform_schema",
+      "tests/test_server.py:test_server_lists_single_search_tool_with_platform_schema:kind=test_function",
+      "tests/test_server.py:test_server_rejects_unknown_tool_with_invalid_params_error",
+      "tests/test_server.py:test_server_rejects_unknown_tool_with_invalid_params_error:kind=test_function",
+      "tests/test_server.py:test_server_reports_invalid_arguments_as_tool_error",
+      "tests/test_server.py:test_server_reports_invalid_arguments_as_tool_error:kind=test_function",
+      "tests/test_server.py:test_server_reports_missing_arguments_as_tool_error",
+      "tests/test_server.py:test_server_reports_missing_arguments_as_tool_error:kind=test_function",
+      "tests/test_server.py:test_server_reports_provider_failure_as_tool_error",
+      "tests/test_server.py:test_server_reports_provider_failure_as_tool_error:kind=test_function",
+      "tests/test_server.py:test_server_search_path_follows_system_argument",
+      "tests/test_server.py:test_server_search_path_follows_system_argument:kind=test_function",
+      "tests/test_server.py:test_server_windows_search_passes_windows_params_and_returns_text",
+      "tests/test_server.py:test_server_windows_search_passes_windows_params_and_returns_text:kind=test_function",
+      "tests/test_server.py:test_server_windows_search_without_windows_params_uses_defaults",
+      "tests/test_server.py:test_server_windows_search_without_windows_params_uses_defaults:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/test_package_metadata.py",
+        "tests/test_server.py"
+      ],
+      "edit": [
+        "src/mcp_server_everything_search/server.py"
+      ],
+      "read": [
+        "src/mcp_server_everything_search/__init__.py",
+        "src/mcp_server_everything_search/__main__.py",
+        "src/mcp_server_everything_search/platform_search.py",
+        "src/mcp_server_everything_search/search_interface.py"
+      ],
+      "scope": [
+        "CLAUDE.md",
+        "pyproject.toml",
+        "uv.lock"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_server.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_build_search_tool_windows_uses_platform_schema_and_everything_docs"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_build_search_tool_linux_describes_locate"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_build_search_tool_darwin_describes_mdfind"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_build_search_tool_unknown_platform_says_unknown"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_parse_arguments_reads_base_dict_and_windows_params"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_parse_arguments_accepts_base_as_json_string"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_parse_arguments_treats_non_json_base_string_as_query"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_parse_arguments_accepts_windows_params_as_json_string"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_parse_arguments_rejects_invalid_windows_params_json"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_parse_arguments_rejects_base_of_wrong_type"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_parse_arguments_without_query_raises_validation_error"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_parse_arguments_ignores_mac_and_linux_params_issue_30"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_format_results_renders_every_field_with_na_for_missing_dates"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_format_results_omits_extension_suffix_when_absent"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_format_results_joins_multiple_results_with_newline"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_format_results_empty_list_is_empty_text"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_server_lists_single_search_tool_with_platform_schema"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_server_windows_search_passes_windows_params_and_returns_text"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_server_windows_search_without_windows_params_uses_defaults"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_server_command_line_search_passes_only_query_and_max_results"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_server_search_path_follows_system_argument"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_server_reports_missing_arguments_as_tool_error"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_server_reports_provider_failure_as_tool_error"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_server_reports_invalid_arguments_as_tool_error"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_server_rejects_unknown_tool_with_invalid_params_error"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_server_exposes_no_resources_templates_or_prompts"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_configure_windows_console_is_noop_off_windows"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_main_exits_with_status_1_when_serve_fails"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_serve_runs_platform_provider_over_stdio"
+            }
+          ]
+        },
+        {
+          "path": "tests/test_package_metadata.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_mcp_requirement_excludes_mcp_1_and_next_major_versions"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_mcp_requirement_allows_mcp_2_versions"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "src/mcp_server_everything_search/server.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "build_search_tool",
+              "description": "The single \"search\" tool with platform docs and UnifiedSearchQuery schema.",
+              "args": [
+                {
+                  "name": "system",
+                  "type": "str"
+                }
+              ],
+              "returns": "Tool"
+            },
+            {
+              "kind": "function",
+              "name": "parse_search_arguments",
+              "description": "Accepts base as dict, JSON string, or plain query string; windows_params as dict or JSON string.",
+              "args": [
+                {
+                  "name": "arguments",
+                  "type": "Optional[Dict[str, Any]]"
+                }
+              ],
+              "returns": "UnifiedSearchQuery"
+            },
+            {
+              "kind": "function",
+              "name": "format_results",
+              "args": [
+                {
+                  "name": "results",
+                  "type": "List[SearchResult]"
+                }
+              ],
+              "returns": "str"
+            },
+            {
+              "kind": "function",
+              "name": "create_server",
+              "description": "Lowlevel mcp 2.x Server with on_* handlers bound to the given provider and lowercase platform name.",
+              "args": [
+                {
+                  "name": "search_provider",
+                  "type": "SearchProvider"
+                },
+                {
+                  "name": "system",
+                  "type": "str"
+                }
+              ],
+              "returns": "Server"
+            },
+            {
+              "kind": "function",
+              "name": "serve",
+              "description": "Async composition root; real provider over stdio.",
+              "returns": "None"
+            },
+            {
+              "kind": "function",
+              "name": "configure_windows_console",
+              "returns": "None"
+            },
+            {
+              "kind": "function",
+              "name": "main",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "src/mcp_server_everything_search/platform_search.py",
+        "src/mcp_server_everything_search/search_interface.py",
+        "src/mcp_server_everything_search/__init__.py",
+        "src/mcp_server_everything_search/__main__.py"
+      ],
+      "scope": [
+        {
+          "path": "pyproject.toml",
+          "reason": "Require mcp>=2.0.0,<3; add packaging to the dev group (used by test_package_metadata)."
+        },
+        {
+          "path": "uv.lock",
+          "reason": "Lock mcp 2.3.0 and its dependencies."
+        },
+        {
+          "path": "CLAUDE.md",
+          "reason": "Update the server.py architecture notes for the mcp 2.x on_* handlers and extracted functions."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/test_package_metadata.py",
+      "tests/test_server.py"
+    ],
+    "validate_commands": [
+      "uv run pytest tests/test_server.py tests/test_package_metadata.py -q"
+    ],
+    "acceptance_commands": []
+  }
+}

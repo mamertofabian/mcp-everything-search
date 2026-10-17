@@ -53,11 +53,12 @@ uv build
 
 ### Core Components
 
-1. **server.py** - Main MCP server implementation
-   - Defines the `search` tool with platform-specific schemas
-   - Handles parameter parsing and validation using Pydantic
-   - Routes search requests to appropriate platform provider
-   - Returns formatted search results as TextContent
+1. **server.py** - Main MCP server implementation (mcp 2.x lowlevel `Server`)
+   - `build_search_tool(system)`: the `search` tool with platform docs and schema
+   - `parse_search_arguments(arguments)`: Pydantic validation boundary (mcp 2.x does not validate tool arguments)
+   - `format_results(results)`: renders `SearchResult` objects as text
+   - `create_server(provider, system)`: wires the `on_list_tools`, `on_call_tool` and empty resource/prompt handlers; search failures return `CallToolResult(is_error=True)`, unknown tools raise `MCPError(-32602)`
+   - `serve()`: composition root that runs `create_server(SearchProvider.get_provider(), platform)` over stdio
 
 2. **search_interface.py** - Abstract search provider interface
    - `SearchProvider`: Abstract base class defining the search contract
@@ -109,7 +110,9 @@ uv build
 3. Creates `UnifiedSearchQuery` from combined parameters
 4. Routes to appropriate `SearchProvider` based on `platform.system()`
 5. Provider executes search and returns list of `SearchResult` objects
-6. Server formats results as TextContent with file details
+6. Server formats results as TextContent inside a `CallToolResult`
+
+Tests drive `create_server` through the in-memory `mcp.Client` with a fake `SearchProvider`; `platform.system()` is stubbed so every platform runs on any host.
 
 ## Environment Variables
 
