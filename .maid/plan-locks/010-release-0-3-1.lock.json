@@ -1,0 +1,113 @@
+{
+  "manifest_path": "manifests/010-release-0-3-1.manifest.yaml",
+  "manifest_hash": "sha256-contract:15ed5ae83577969897095041756bb39271a7fec01cadf49d66c01acb4c5075f4",
+  "test_hashes": {
+    "tests/test_release_metadata.py": "sha256-pyast:v2:2f801540cb4dcf26748f9c9282f188b313f56a0fb0f61211741f28c12ac9e18e",
+    "tests/test_package_classifiers.py": "sha256-pyast:v2:53d92cb3208a5917a8ae5b3b3d2877119dc3c5f576e2c53f150e76785ea154dc"
+  },
+  "created_at": "2026-10-17T04:51:36.048066+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:45c951b2beb017fae68b3e49d41d64f1d53e727fa1d9c2edf40e4c496f9d636a",
+      "prior_test_hashes": {
+        "tests/test_release_metadata.py": "sha256-pyast:v2:2f801540cb4dcf26748f9c9282f188b313f56a0fb0f61211741f28c12ac9e18e",
+        "tests/test_package_classifiers.py": "sha256-pyast:v2:53d92cb3208a5917a8ae5b3b3d2877119dc3c5f576e2c53f150e76785ea154dc"
+      },
+      "revised_at": "2026-10-17T04:51:36.627843+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/010-release-0-3-1.manifest.yaml -> manifests/010-release-0-3-1.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-17T04:51:36.249098+00:00",
+    "commands": [
+      {
+        "command": "uv run pytest tests/test_package_classifiers.py tests/test_release_metadata.py -q",
+        "exit_code": 1,
+        "output_tail": "    \n        # Act\n        classifiers = set(meta.get_all(\"Classifier\") or [])\n        missing = [\n            f\"3.{m}\"\n            for m in range(floor, newest + 1)\n            if f\"Programming Language :: Python :: 3.{m}\" not in classifiers\n        ]\n    \n        # Assert\n>       assert missing == []\nE       AssertionError: assert ['3.11', '3.12', '3.13'] == []\nE         \nE         Left contains 3 more items, first extra item: '3.11'\nE         Use -v to get more diff\n\ntests/test_package_classifiers.py:38: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_package_classifiers.py::test_classifiers_list_every_python_version_from_floor_to_ci_maximum\n1 failed, 5 passed in 0.03s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": {
+    "model": "claude-opus-5-5",
+    "client": "claude-code",
+    "skills": [
+      "maid-planner"
+    ],
+    "source": "flags"
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/test_package_classifiers.py:test_classifiers_list_every_python_version_from_floor_to_ci_maximum",
+      "tests/test_package_classifiers.py:test_classifiers_list_every_python_version_from_floor_to_ci_maximum:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/test_package_classifiers.py"
+      ],
+      "edit": [],
+      "read": [
+        ".github/workflows/ci.yml",
+        "tests/test_release_metadata.py"
+      ],
+      "scope": [
+        "CHANGELOG.md",
+        "pyproject.toml",
+        "uv.lock"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_package_classifiers.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_classifiers_list_every_python_version_from_floor_to_ci_maximum"
+            }
+          ]
+        }
+      ],
+      "read": [
+        ".github/workflows/ci.yml",
+        "tests/test_release_metadata.py"
+      ],
+      "scope": [
+        {
+          "path": "pyproject.toml",
+          "reason": "Version 0.3.1 and Python 3.11-3.13 classifiers."
+        },
+        {
+          "path": "uv.lock",
+          "reason": "Lockfile records the project version."
+        },
+        {
+          "path": "CHANGELOG.md",
+          "reason": "0.3.1 section (required by 006 release metadata tests)."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/test_package_classifiers.py",
+      "tests/test_release_metadata.py"
+    ],
+    "validate_commands": [
+      "uv run pytest tests/test_package_classifiers.py tests/test_release_metadata.py -q"
+    ],
+    "acceptance_commands": []
+  }
+}

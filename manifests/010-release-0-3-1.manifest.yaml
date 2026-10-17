@@ -1,0 +1,100 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+sequence_number: 10
+goal: Prepare the 0.3.1 release with complete Python classifiers
+type: feature
+created: '2026-10-17T04:51:36Z'
+metadata:
+  tags:
+  - release
+description: |-
+  Bump the version to 0.3.1 for the fork-derived fixes (008, 009) and add the
+  0.3.1 changelog section (docs; release metadata tests from 006 require the
+  installed version to be the newest changelog heading).
+
+  pyproject listed only the Python 3.10 classifier although CI tests 3.10 and
+  3.13 and requires-python is >=3.10. Add 3.11, 3.12 and 3.13. The new test reads
+  the installed distribution metadata (what PyPI shows) and the CI matrix, so the
+  classifiers must grow when CI adds a newer Python.
+
+  Tagging/publishing is a separate, user-approved step.
+temptations:
+- risk: Hard-coding the classifier list in the test.
+  instead: Derive the expected range from Requires-Python and the CI matrix.
+files:
+  create:
+  - path: tests/test_package_classifiers.py
+    artifacts:
+    - kind: test_function
+      name: test_classifiers_list_every_python_version_from_floor_to_ci_maximum
+  scope:
+  - path: pyproject.toml
+    reason: Version 0.3.1 and Python 3.11-3.13 classifiers.
+  - path: uv.lock
+    reason: Lockfile records the project version.
+  - path: CHANGELOG.md
+    reason: 0.3.1 section (required by 006 release metadata tests).
+  read:
+  - .github/workflows/ci.yml
+  - tests/test_release_metadata.py
+validate:
+- - uv
+  - run
+  - pytest
+  - tests/test_package_classifiers.py
+  - tests/test_release_metadata.py
+  - -q
+outcome:
+  status: completed
+  completed_at: '2026-10-17T18:00:00+08:00'
+  summary: Version 0.3.1 with Python 3.10-3.13 classifiers and a 0.3.1 changelog crediting the forks; built wheel
+    carries the updated README.
+  rationale: Release of manifests 008/009; classifier test derives the expected range from Requires-Python and the
+    CI matrix.
+  agent:
+    model: claude-opus-5-5
+    client: claude-code
+    skills:
+    - maid-planner
+    - maid-implementer
+    - maid-implementation-review
+  review_notes:
+  - source: maid-plan-reviewer
+    severity: ready
+    summary: Approved; optional SpecifierSet parsing not applied (current parse fails loudly on other formats).
+  - source: maid-implementation-reviewer
+    severity: ready
+    summary: 'Changelog fixes applied as suggested: coverage claim limited to everything_sdk.py, amcaude credited
+      for all three hardening fixes, invalid tool name startup failure documented.'
+  validation:
+  - command:
+    - uv
+    - run
+    - pytest
+    - -q
+    status: passed
+    summary: 185 passed, 1 skipped; red evidence exit 1 (missing 3.11-3.13 classifiers).
+  - command:
+    - scripts/maid
+    - verify
+    - --profile
+    - handoff
+    - --summary
+    - --advisory
+    - --plan-lock-scope
+    - task
+    - --file-tracking-scope
+    - task
+    - --since
+    - 3dcac0f
+    status: passed
+    summary: 9/9 gates; known E310 only.
+  - command:
+    - uv
+    - build
+    status: passed
+    summary: 0.3.1 wheel/sdist; METADATA without Smithery, with PyPI/CI badges and tool-name docs.

@@ -2,6 +2,35 @@
 
 All notable changes to this project are documented here.
 
+## 0.3.1 - unreleased
+
+This release borrows fixes from community forks: more robust Windows results, hardened search commands, and an optional tool name.
+
+### Fixed
+
+- **Windows: one bad attribute no longer drops a result** (#14). Each timestamp is converted separately, so a file with an unrepresentable date is still returned (with that date as `N/A`). Thanks @amcaude and @WhizZest, and @s-github-2 and @gjy1992, who wrote the same fix in their forks.
+- **Windows: unreadable results are reported.** If some matches cannot be read from Everything, the readable ones are returned and the output ends with a warning giving the count; if none can be read, the search fails with an error instead of returning nothing.
+- Clear errors when the Everything SDK DLL cannot be loaded, naming `EVERYTHING_SDK_PATH`.
+- Search commands (`mdfind`, `locate`) time out after 30 seconds instead of hanging the server.
+- A query starting with `-` is no longer passed to `locate` as an option (the query now follows `--`), and a literal or interpreted `mdfind` query starting with `-` is rejected.
+- macOS `search_directory` expands `~` and must exist, instead of silently returning no results.
+
+The three hardening fixes above come from @amcaude's fork.
+
+### Added
+
+- `EVERYTHING_SEARCH_TOOL_NAME` renames the tool (default `search`) for clients where the generic name collides with another server's tool (#19). The name may use letters, digits, `_` and `-` (1-64 characters); an invalid value stops the server at startup. Thanks @kshin5.
+
+### Changed
+
+- **Windows: `EVERYTHING_SDK_PATH` is now required.** The server no longer falls back to a hard-coded `D:\dev\tools\...` path; if the variable is unset or does not point to a file, it stops at startup with an error naming the variable.
+- Diagnostics go through Python logging (stderr) instead of `Debug:` prints.
+
+### Development
+
+- `everything_sdk.py` is now fully tested (with a fake DLL, so on every OS) and included in the CI lint/type checks; `search_interface.py` tests were extended.
+- Python 3.11, 3.12 and 3.13 classifiers added.
+
 ## 0.3.0 - 2026-10-17
 
 This release restores a working install and fixes the Windows `sort_by` schema. It requires mcp 2.x.
