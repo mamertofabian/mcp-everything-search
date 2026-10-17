@@ -47,3 +47,63 @@ validate:
   - tests/test_ci_action_pins.py
   - tests/test_ci_workflow.py
   - -q
+outcome:
+  status: completed
+  completed_at: '2026-10-17T11:50:00+08:00'
+  summary: CI actions pinned to exact tags; CI run 38995794444 on 8461f56 passed all 7 jobs (tests on ubuntu/windows/macos
+    x Python 3.10/3.13, quality).
+  rationale: setup-uv publishes no moving major tag; run 38995581453 failed at action resolution in every job.
+  agent:
+    model: claude-opus-5-5
+    client: claude-code
+    skills:
+    - maid-planner
+    - maid-implementer
+    - maid-implementation-review
+  lessons:
+  - lesson_type: validation-gap
+    summary: Checking an action's latest release does not prove a moving major tag exists; verify the exact ref
+      with the git refs API or pin vX.Y.Z.
+    paths:
+    - .github/workflows/ci.yml
+    - tests/test_ci_action_pins.py
+    tags:
+    - ci
+    - github-actions
+  review_notes:
+  - source: maid-plan-reviewer
+    severity: ready
+    summary: Approved; out-of-scope notes (SHA pinning, other workflows) added to the description.
+  - source: maid-implementation-reviewer
+    severity: ready
+    summary: 'Ready to merge; scope limited to four uses: lines; 004 locked tests untouched.'
+  validation:
+  - command:
+    - uv
+    - run
+    - pytest
+    - -q
+    status: passed
+    summary: 92 passed locally; red evidence exit 1 (loose refs).
+  - command:
+    - scripts/maid
+    - verify
+    - --profile
+    - handoff
+    - --summary
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --since
+    - dbcf2a2
+    status: passed
+    summary: 9/9 gates passed.
+  - command:
+    - gh
+    - run
+    - watch
+    - '38995794444'
+    - --exit-status
+    status: passed
+    summary: 'GitHub Actions CI on 8461f56: all 7 jobs succeeded.'
